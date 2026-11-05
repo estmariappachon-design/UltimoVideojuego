@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "951044249925",
+    "firebase_url": "https://salta-pio-default-rtdb.firebaseio.com",
+    "project_id": "salta-pio",
+    "storage_bucket": "salta-pio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:951044249925:android:c5ec9d80cf6467da98862c",
+        "android_client_info": {
+          "package_name": "com.UnityTechnologies.com.unity.template.urpblank"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCkBjQVbf4DVrEGp0JGhmQlgK_dKggV9Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
