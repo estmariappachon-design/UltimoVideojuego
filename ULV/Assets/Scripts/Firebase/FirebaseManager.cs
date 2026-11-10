@@ -19,7 +19,7 @@ public class FirebaseManager : MonoBehaviour
     [Header("Nombres de escenas (deben estar en Build Settings)")]
     public string loginScene = "LoginScene";
     public string menuScene = "MainMenu";
-    public string gameScene = "GameScene";
+    // La escena del juego se lee de Resources/LevelCatalog
 
     public bool IsReady { get; private set; }
     public string InitError { get; private set; }
@@ -193,7 +193,7 @@ public class FirebaseManager : MonoBehaviour
     /// Pierde: solo cuenta el intento y guarda el puntaje de la partida.
     /// Devuelve true si se desbloqueó un nivel nuevo.
     /// </summary>
-    public async Task<bool> ReportLevelResultAsync(int levelNumber, int score, bool won)
+    public async Task<bool> ReportLevelResultAsync(int levelNumber, int score, bool won, int stars = 0)
     {
         if (Progress == null) return false;
 
@@ -206,6 +206,7 @@ public class FirebaseManager : MonoBehaviour
         {
             level.state = LevelState.Completed;
             if (score > level.bestScore) level.bestScore = score;
+            if (stars > level.stars) level.stars = stars;
 
             Progress.totalScore += score;
             Progress.lastCompletedLevel = Math.Max(Progress.lastCompletedLevel, levelNumber);
@@ -278,7 +279,7 @@ public class FirebaseManager : MonoBehaviour
             return;
         }
         SelectedLevel = levelNumber;
-        SceneManager.LoadScene(gameScene);
+        SceneManager.LoadScene(LevelCatalog.SceneFor(levelNumber));
     }
 
     // =====================================================================

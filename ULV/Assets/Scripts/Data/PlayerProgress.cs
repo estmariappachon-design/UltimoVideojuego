@@ -22,6 +22,7 @@ public class LevelData
     public string state = LevelState.Locked;
     public int bestScore;
     public int timesPlayed;
+    public int stars;          // mejor cantidad de estrellas (0-3)
 
     public Dictionary<string, object> ToDictionary()
     {
@@ -29,7 +30,8 @@ public class LevelData
         {
             { "state", state },
             { "bestScore", bestScore },
-            { "timesPlayed", timesPlayed }
+            { "timesPlayed", timesPlayed },
+            { "stars", stars }
         };
     }
 }
@@ -147,6 +149,7 @@ public class PlayerProgress
             p.levels[i].state = GetString(ls, "state", p.levels[i].state);
             p.levels[i].bestScore = GetInt(ls, "bestScore", 0);
             p.levels[i].timesPlayed = GetInt(ls, "timesPlayed", 0);
+            p.levels[i].stars = GetInt(ls, "stars", 0);
         }
 
         // Coherencia: todo nivel <= maxUnlockedLevel debe estar al menos desbloqueado

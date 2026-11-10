@@ -1,0 +1,477 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f86b5b95c4ee8d4a8754c79d3687d90, type: 3}
+  m_Name: LevelCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::LevelCatalog
+  gameScene: GameScene
+  flavors:
+  - name: Fresa
+    layerSprite: {fileID: 21300000, guid: e32f7184c742f9f43947d24e1a1ebcee, type: 3}
+    color: {r: 1, g: 0.67, b: 0.75, a: 1}
+  - name: Chocolate
+    layerSprite: {fileID: 21300000, guid: cfdf29629b79f214abf1c4fd285db857, type: 3}
+    color: {r: 0.6, g: 0.4, b: 0.3, a: 1}
+  - name: Vainilla
+    layerSprite: {fileID: 21300000, guid: 52bd703bb3604b149b96c82b485425c7, type: 3}
+    color: {r: 1, g: 0.92, b: 0.75, a: 1}
+  - name: Menta
+    layerSprite: {fileID: 21300000, guid: a84353bd2ef9b114684f6376e85c02b0, type: 3}
+    color: {r: 0.6, g: 0.9, b: 0.78, a: 1}
+  - name: "Ar\xE1ndano"
+    layerSprite: {fileID: 21300000, guid: 5c537c5a434323e41afd6552778e5cc2, type: 3}
+    color: {r: 0.62, g: 0.58, b: 0.92, a: 1}
+  - name: "Lim\xF3n"
+    layerSprite: {fileID: 21300000, guid: 4636c7abbf54b6f4d8bec4ee9b664c28, type: 3}
+    color: {r: 1, g: 0.93, b: 0.5, a: 1}
+  - name: "Algod\xF3n"
+    layerSprite: {fileID: 21300000, guid: 09a755ab72ad8654a92d5ef08049af97, type: 3}
+    color: {r: 0.88, g: 0.68, b: 0.93, a: 1}
+  - name: Naranja
+    layerSprite: {fileID: 21300000, guid: 37aeca7d10f90d947962ea9f09ad5dd0, type: 3}
+    color: {r: 1, g: 0.72, b: 0.5, a: 1}
+  burntLayerSprite: {fileID: 21300000, guid: 014fa044a7d951a45aba523746ac517f, type: 3}
+  burntFaceSprite: {fileID: 21300000, guid: 8aa760ac02fd25640b7a7241abd9292e, type: 3}
+  customers:
+  - name: Conejita
+    normal: {fileID: 21300000, guid: dd7687330750d2b4b80b305e915a9eb9, type: 3}
+    happy: {fileID: 21300000, guid: 596d0e52b0a44ef4f8f4395aa2fd0b60, type: 3}
+    angry: {fileID: 21300000, guid: 589f805bb10da5a43a6f69e66bd5ce14, type: 3}
+    greeting: "\xA1Hola! Es el cumplea\xF1os de mi abuelita, \xBFme ayudas?"
+  - name: Gatito
+    normal: {fileID: 21300000, guid: 8de1e1e909d140346a3a9baa88304400, type: 3}
+    happy: {fileID: 21300000, guid: 5a3677ab55938874c8c6a4fe133aaf27, type: 3}
+    angry: {fileID: 21300000, guid: 00e3b8fba5f5dbd47ab6f9bcb3159849, type: 3}
+    greeting: "Miau~ quiero un pastel bien alto, \xA1por favor!"
+  - name: Osito
+    normal: {fileID: 21300000, guid: 2caa26602bf9daf4582fdd51e50f1880, type: 3}
+    happy: {fileID: 21300000, guid: d2ccbcbb91006a546babdacc9b8889c4, type: 3}
+    angry: {fileID: 21300000, guid: bc90a1da1ea07854d9c964b6086836ae, type: 3}
+    greeting: "Tengo mucha hambre... \xA1ese pastel se ve delicioso!"
+  - name: Pollito
+    normal: {fileID: 21300000, guid: 7780600e2ffeeaf478de4fe1e253b566, type: 3}
+    happy: {fileID: 21300000, guid: 576cc7b2c7cee41478b1090ea5ae056c, type: 3}
+    angry: {fileID: 21300000, guid: f70a441dd61bf484e88d1dc8e6de475f, type: 3}
+    greeting: "\xA1P\xEDo p\xEDo! Es para una fiesta sorpresa."
+  - name: "Ping\xFCina"
+    normal: {fileID: 21300000, guid: 2e3574684cb889b47b698df1d9144775, type: 3}
+    happy: {fileID: 21300000, guid: aa52a9ff8d6fce24e97901f3c9295946, type: 3}
+    angry: {fileID: 21300000, guid: 0293ae1c877a5db44a0a041a039f0460, type: 3}
+    greeting: "\xA1Hace fr\xEDo! Un pastelito me pondr\xE1 feliz."
+  levels:
+  - title: "Pasteler\xEDa Rosa"
+    description: "\xA1Aprende a apilar!"
+    challengeDescription: "F\xE1cil: apila los 8 pisos en el orden del pedido"
+    thumbnail: {fileID: 21300000, guid: 0b613acece6220a4a9d49c2220028227, type: 3}
+    background: {fileID: 21300000, guid: 87946441f0d215f44850065ee25ccdc8, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 3
+    baseWidth: 3.4
+    startSpeed: 2.3
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.15
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: "Caf\xE9 Menta"
+    description: Una brisa se lleva los pasteles
+    challengeDescription: "Brisa: el viento empuja los pasteles al caer. \xA1Mira
+      la flecha!"
+    thumbnail: {fileID: 21300000, guid: 27ec75bbd52775c468c78554a238d336, type: 3}
+    background: {fileID: 21300000, guid: 97f6449832480154991461b0578ddfb0, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 3
+    baseWidth: 3.3
+    startSpeed: 2.6
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.14
+    windStrength: 1.5
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: Horno Travieso
+    description: Pasteles quemados
+    challengeDescription: "\xA1No sueltes los pasteles QUEMADOS! D\xE9jalos pasar
+      o pierdes un coraz\xF3n"
+    thumbnail: {fileID: 21300000, guid: d0a2d121a6c80e941b26834d44c5d8b6, type: 3}
+    background: {fileID: 21300000, guid: a20b91768894f4e4eb7557def15713c8, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 4
+    baseWidth: 3.2
+    startSpeed: 2.8
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.13
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0.3
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: El Ventilador
+    description: El ventilador
+    challengeDescription: "Cuando el ventilador se enciende, \xA1espera a que pare
+      antes de soltar!"
+    thumbnail: {fileID: 21300000, guid: 665fa6d49165a5342a0bd6303b53870d, type: 3}
+    background: {fileID: 21300000, guid: 5f5721e2be822d84795950e2001d81c7, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 4
+    baseWidth: 3.2
+    startSpeed: 3
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.13
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 9
+    fanForce: 5.5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: Picnic con Moscas
+    description: Moscas golosas
+    challengeDescription: "Toca las MOSCAS para espantarlas antes de que da\xF1en
+      un pastel"
+    thumbnail: {fileID: 21300000, guid: 339bae5e82ee32149841581831e56daa, type: 3}
+    background: {fileID: 21300000, guid: eb106a3647b255c499b527cc215cbafc, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 5
+    baseWidth: 3.1
+    startSpeed: 3.1
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.12
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 6
+    flySpeed: 1.6
+    maxFlies: 2
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: Mesa Temblorosa
+    description: La mesa tiembla
+    challengeDescription: "Cuando la mesa tiemble, \xA1toca r\xE1pido para sujetar
+      la torre!"
+    thumbnail: {fileID: 21300000, guid: 0b204ada544986d4dbd7f0c56d9513ac, type: 3}
+    background: {fileID: 21300000, guid: 3eca25f2a76830c46b8ffbb270767a93, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 5
+    baseWidth: 3.1
+    startSpeed: 3.2
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.12
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 11
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: "Apag\xF3n Dulce"
+    description: "Apag\xF3n"
+    challengeDescription: "Las luces se apagan a ratos: \xA1construye casi a ciegas!"
+    thumbnail: {fileID: 21300000, guid: 52b6eccdbb459dc4bb39213069c1328b, type: 3}
+    background: {fileID: 21300000, guid: ee901b51edaf2534a8d1e04e2a21d3a1, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 5
+    baseWidth: 3.1
+    startSpeed: 3.3
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.12
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 10
+    blackoutDuration: 4.5
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: Tormenta de Pasteles
+    description: Tormenta de pasteles
+    challengeDescription: "Viento fuerte + temblores + pasteles quemados, \xA1en
+      cualquier momento!"
+    thumbnail: {fileID: 21300000, guid: a85767bac8e5e5843ae99a26fa182f41, type: 3}
+    background: {fileID: 21300000, guid: 1ef9ef44dd381ec4d99d727e4eaeed21, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 6
+    baseWidth: 3
+    startSpeed: 3.4
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.11
+    windStrength: 2.1
+    windChangeEvery: 3
+    decoyChance: 0.3
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 13
+    tremorDuration: 3.5
+    tremorStrength: 5.5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: Nube de Harina
+    description: Nube de harina
+    challengeDescription: "Una nube de harina tapa la pantalla y \xA1el plato se
+      mueve!"
+    thumbnail: {fileID: 21300000, guid: 6d04e78b19e9acb4b81acc8ccde3c8d9, type: 3}
+    background: {fileID: 21300000, guid: 8f3889360e27f614ba72fc72f7454450, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 6
+    baseWidth: 3
+    startSpeed: 3.5
+    speedPerFloor: 0.07
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.11
+    windStrength: 0
+    windChangeEvery: 4
+    decoyChance: 0
+    burntRatio: 1
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 0
+    flySpeed: 1.6
+    maxFlies: 1
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 10
+    flourDuration: 3
+    movingPlateSpeed: 1
+    orderChangeChance: 0
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
+  - title: El Cliente Exigente
+    description: "\xA1El cliente exigente!"
+    challengeDescription: El cliente CAMBIA su pedido a mitad + viento, temblores,
+      moscas y pasteles defectuosos
+    thumbnail: {fileID: 21300000, guid: 18dfd9fa05b458d4299c79f03de6157b, type: 3}
+    background: {fileID: 21300000, guid: 23082f6ed60d2fd4fa4d7c21584dd46a, type: 3}
+    music: {fileID: 0}
+    ordersToWin: 3
+    floorsPerOrder: 8
+    hearts: 3
+    flavorCount: 7
+    baseWidth: 3
+    startSpeed: 3.6
+    speedPerFloor: 0.08
+    speedPerOrder: 0.25
+    maxSpeed: 8
+    perfectTolerance: 0.1
+    windStrength: 1.8
+    windChangeEvery: 3.5
+    decoyChance: 0.3
+    burntRatio: 0.5
+    decoyPasses: 2
+    fanEvery: 0
+    fanForce: 5
+    fanDuration: 2.6
+    flyEvery: 8
+    flySpeed: 1.8
+    maxFlies: 1
+    tremorEvery: 15
+    tremorDuration: 3.5
+    tremorStrength: 5
+    blackoutEvery: 0
+    blackoutDuration: 4
+    flourEvery: 0
+    flourDuration: 3
+    movingPlateSpeed: 0
+    orderChangeChance: 1
+    flavorShiftInterval: 0
+    patienceSeconds: 0
+    challengeChance: 0
+    challenges: 
