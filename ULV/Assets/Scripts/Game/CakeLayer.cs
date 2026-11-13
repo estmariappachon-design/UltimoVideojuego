@@ -72,6 +72,46 @@ public class CakeLayer : MonoBehaviour
         Scare();
     }
 
+    /// <summary>El cliente ya no quiere este piso: parpadea en rojo hasta que lo toques para quitarlo.</summary>
+    public bool IsWrong { get; private set; }
+    [Tooltip("Color con el que parpadea un piso que el cliente ya no quiere")]
+    public Color wrongColor = new Color(1f, 0.45f, 0.45f);
+    private Coroutine wrongRoutine;
+
+    public void SetWrong(bool wrong)
+    {
+        IsWrong = wrong;
+        if (wrongRoutine != null) StopCoroutine(wrongRoutine);
+        wrongRoutine = null;
+        if (wrong)
+        {
+            Scare();
+            wrongRoutine = StartCoroutine(WrongBlink());
+        }
+        else if (body != null) body.color = IsDirty ? dirtyColor : Color.white;
+    }
+
+    private IEnumerator WrongBlink()
+    {
+        Vector3 home = transform.localPosition;
+        float t = 0f;
+        while (IsWrong)
+        {
+            t += Time.deltaTime;
+            float k = (Mathf.Sin(t * 10f) + 1f) / 2f;
+            if (body != null) body.color = Color.Lerp(Color.white, wrongColor, k);
+            transform.localPosition = home + new Vector3(Mathf.Sin(t * 40f) * 0.03f, 0f, 0f);
+            yield return null;
+        }
+    }
+
+    /// <summary>¿El punto (mundo) toca esta capa?</summary>
+    public bool ContainsPoint(Vector3 worldPoint, float extra = 0.15f)
+    {
+        Vector3 local = transform.InverseTransformPoint(worldPoint);
+        return Mathf.Abs(local.x) <= Width / 2f + extra && Mathf.Abs(local.y) <= height / 2f + extra;
+    }
+
     public void SetWidth(float width)
     {
         Width = width;
@@ -123,6 +163,7 @@ public class CakeLayer : MonoBehaviour
     /// <summary>La capa sale volando y cae fuera de la pantalla.</summary>
     public void Fall(float pushX)
     {
+        if (IsWrong) { IsWrong = false; if (wrongRoutine != null) StopCoroutine(wrongRoutine); }
         Scare();
         transform.SetParent(null, true);
         Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();

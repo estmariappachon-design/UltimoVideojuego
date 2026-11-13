@@ -46,6 +46,19 @@ public class GameHud : MonoBehaviour
     public Color stableColor = new Color(0.55f, 0.85f, 0.6f);
     public Color unstableColor = new Color(1f, 0.45f, 0.5f);
 
+    [Header("Medidor de precisión (nivel 2) y cronómetro (nivel 8)")]
+    [Tooltip("Si está vacío se crea solo al jugar")]
+    public TimingMeterUI timingMeter;
+    [Tooltip("Si está vacío se crea solo al jugar")]
+    public OrderTimerUI orderTimer;
+
+    [Header("Legibilidad de '¡Bien!' / '¡Perfecto!' y mensajes")]
+    [Tooltip("Borde oscuro alrededor de las letras para que se lean sobre cualquier fondo")]
+    public Color textOutlineColor = new Color(0.32f, 0.1f, 0.22f, 1f);
+    [Range(0f, 0.5f)] public float textOutlineWidth = 0.28f;
+    [Tooltip("Sombra suave debajo de las letras")]
+    public bool textShadow = true;
+
     [Header("Pausa")]
     public GameObject pausePanel;
     public Button resumeButton;
@@ -68,6 +81,15 @@ public class GameHud : MonoBehaviour
     public string missMessage = "¡Ups, se cayó!";
     public string wrongFlavorFormat = "¡Ese piso era de {0}!";
     public string notInOrderMessage = "¡Ese sabor no está en el pedido!";
+    public string meterGreenMessage = "¡En el verde!";
+    public string meterMissMessage = "Fuera del verde...";
+    [TextArea] public string orderChangePlacedFormat = "¡Cambié de opinión!\n<size=70%>Quita {0} y hazlos como dice el ticket</size>";
+    public string oneFloorWord = "el piso que parpadea";
+    public string manyFloorsWord = "los {0} pisos que parpadean";
+    public string removeWrongMessage = "¡Toca los pasteles que parpadean para quitarlos!";
+    public string wrongRemovedMessage = "¡Fuera!";
+    public string discardedMessage = "¡A la basura!";
+    public string timeUpMessage = "¡Se acabó el tiempo!";
     public string burntMessage = "¡Era un pastel quemado!";
     public string decoyAvoidedMessage = "¡Bien hecho, lo dejaste pasar!";
     public string orderDoneMessage = "¡Pedido listo!";
@@ -135,6 +157,7 @@ public class GameHud : MonoBehaviour
     // ------------------------------------------------------------------ MENSAJES
     public void ShowMessage(string text, float seconds)
     {
+        MakeReadable(messageText);
         if (messageText == null) return;
         if (messageRoutine != null) StopCoroutine(messageRoutine);
         messageRoutine = StartCoroutine(MessageRoutine(text, seconds));
@@ -162,8 +185,56 @@ public class GameHud : MonoBehaviour
     }
 
     /// <summary>Texto que salta (¡Perfecto!, ¡Bien!) con un pequeño rebote.</summary>
+    /// <summary>Borde oscuro + sombra para que el texto se lea sobre cualquier fondo.</summary>
+    private void MakeReadable(TMP_Text t)
+    {
+        if (t == null || readable.Contains(t)) return;
+        readable.Add(t);
+        t.outlineColor = textOutlineColor;
+        t.outlineWidth = textOutlineWidth;
+        if (textShadow)
+        {
+            ShaderUtilities.GetShaderPropertyIDs();
+            Material m = t.fontMaterial;   // copia solo para este texto
+            if (m != null && m.HasProperty(ShaderUtilities.ID_UnderlayColor))
+            {
+                m.EnableKeyword(ShaderUtilities.Keyword_Underlay);
+                m.SetColor(ShaderUtilities.ID_UnderlayColor, new Color(0f, 0f, 0f, 0.55f));
+                m.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0.6f);
+                m.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, -0.8f);
+                m.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.35f);
+                m.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.2f);
+            }
+        }
+    }
+
+    private readonly System.Collections.Generic.List<TMP_Text> readable = new System.Collections.Generic.List<TMP_Text>();
+
+    /// <summary>Colores fuertes que se ven bien (los muy claros se oscurecen un poco).</summary>
+    private static Color Strong(Color c)
+    {
+        Color.RGBToHSV(c, out float h, out float sat, out float v);
+        sat = Mathf.Max(sat, 0.65f);
+        v = Mathf.Clamp(v, 0.75f, 0.95f);
+        Color r = Color.HSVToRGB(h, sat, v);
+        r.a = 1f;
+        return r;
+    }
+
+    /// <summary>Crea el medidor y el cronómetro si la escena no los tiene.</summary>
+    public void EnsureExtras()
+    {
+        Transform parent = transform.Find("SafeArea");
+        if (parent == null) parent = transform;
+        TMP_FontAsset font = scoreText != null ? scoreText.font : null;
+        if (timingMeter == null) timingMeter = TimingMeterUI.Create(parent, font);
+        if (orderTimer == null) orderTimer = OrderTimerUI.Create(parent, font);
+    }
+
     public void Popup(string text, Color color)
     {
+        MakeReadable(popupText);
+        color = Strong(color);
         if (popupText == null) return;
         if (popupRoutine != null) StopCoroutine(popupRoutine);
         popupRoutine = StartCoroutine(PopupRoutine(text, color));

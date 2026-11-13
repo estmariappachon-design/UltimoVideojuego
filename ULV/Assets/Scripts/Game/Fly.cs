@@ -57,6 +57,9 @@ public class Fly : MonoBehaviour
         onDamage = damageCallback;
         basePos = transform.position;
         phase = UnityEngine.Random.value * 10f;
+        baseScale = transform.localScale;
+        appearTimer = 0f;
+        transform.localScale = baseScale * 0.01f;
         state = S.Flying;
     }
 
@@ -84,8 +87,19 @@ public class Fly : MonoBehaviour
         Destroy(gameObject, 2.5f);
     }
 
+    private Vector3 baseScale = Vector3.one;
+    private float appearTimer = 1f;
+
     private void Update()
     {
+        // Aparece con un "pop"
+        if (appearTimer < 0.3f)
+        {
+            appearTimer += Time.deltaTime;
+            float k = Mathf.Clamp01(appearTimer / 0.3f);
+            float pop = k < 0.7f ? Mathf.Lerp(0f, 1.2f, k / 0.7f) : Mathf.Lerp(1.2f, 1f, (k - 0.7f) / 0.3f);
+            transform.localScale = baseScale * Mathf.Max(0.01f, pop);
+        }
         Animate();
         phase += Time.deltaTime;
 

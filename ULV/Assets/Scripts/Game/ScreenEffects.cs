@@ -15,6 +15,8 @@ public class ScreenEffects : MonoBehaviour
     public RectTransform darkness;
     public CanvasGroup darknessGroup;
     [Range(0f, 1f)] public float darknessAlpha = 0.96f;
+    [Tooltip("Capa negra que oscurece también el círculo de luz (luz tenue). Si está vacía se crea sola")]
+    public Image lightDimmer;
 
     [Header("Harina")]
     public RectTransform flourRoot;
@@ -34,34 +36,69 @@ public class ScreenEffects : MonoBehaviour
         StopAllCoroutines();
         IsBlackout = IsFlour = false;
         if (darkness != null) darkness.gameObject.SetActive(false);
+        if (lightDimmer != null) lightDimmer.gameObject.SetActive(false);
         if (flourRoot != null) flourRoot.gameObject.SetActive(false);
     }
 
+    /// <summary>Crea la capa de "luz tenue" si no existe.</summary>
+    private void EnsureDimmer()
+    {
+        if (lightDimmer != null || darkness == null) return;
+        GameObject go = new GameObject("LuzTenue", typeof(RectTransform), typeof(Image));
+        go.layer = 5;
+        go.transform.SetParent(darkness.parent, false);
+        go.transform.SetSiblingIndex(darkness.GetSiblingIndex() + 1);
+        lightDimmer = go.GetComponent<Image>();
+        lightDimmer.color = new Color(0.03f, 0.02f, 0.08f, 0f);
+        lightDimmer.raycastTarget = false;
+        go.AddComponent<CubrirPantalla>();
+        go.SetActive(false);
+    }
+
+    private void SetDim(float alpha)
+    {
+        if (lightDimmer == null) return;
+        Color c = lightDimmer.color;
+        c.a = alpha;
+        lightDimmer.color = c;
+    }
+
     /// <summary>Apagón: parpadea, se oscurece y deja un círculo de luz que sigue al pastel.</summary>
-    public IEnumerator Blackout(float duration, Func<Vector3> worldFocus, Camera cam)
+    /// <param name="lightDim">0 = el círculo de luz es normal; 0.7 = la luz es muy tenue</param>
+    public IEnumerator Blackout(float duration, Func<Vector3> worldFocus, Camera cam, float lightDim = 0f)
     {
         if (darkness == null) yield break;
         IsBlackout = true;
         darkness.gameObject.SetActive(true);
+        if (lightDim > 0f)
+        {
+            EnsureDimmer();
+            if (lightDimmer != null) { lightDimmer.gameObject.SetActive(true); SetDim(0f); }
+        }
 
         // Parpadeo
         for (int i = 0; i < 4; i++)
         {
-            SetDarkness(i % 2 == 0 ? darknessAlpha : 0.15f, worldFocus, cam);
+            bool off = i % 2 == 0;
+            SetDarkness(off ? darknessAlpha : 0.15f, worldFocus, cam);
+            SetDim(off ? lightDim : 0f);
             yield return new WaitForSeconds(0.09f + i * 0.03f);
         }
 
         for (float t = 0f; t < duration; t += Time.deltaTime)
         {
             SetDarkness(darknessAlpha, worldFocus, cam);
+            SetDim(lightDim);
             yield return null;
         }
         for (float t = 0f; t < 0.5f; t += Time.deltaTime)
         {
             SetDarkness(darknessAlpha * (1f - t / 0.5f), worldFocus, cam);
+            SetDim(lightDim * (1f - t / 0.5f));
             yield return null;
         }
         darkness.gameObject.SetActive(false);
+        if (lightDimmer != null) lightDimmer.gameObject.SetActive(false);
         IsBlackout = false;
     }
 

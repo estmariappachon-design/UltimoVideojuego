@@ -85,6 +85,9 @@ MonoBehaviour:
     perfectTolerance: 0.15
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -94,23 +97,28 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
     challenges: 
   - title: "Caf\xE9 Menta"
-    description: Una brisa se lleva los pasteles
-    challengeDescription: "Brisa: el viento empuja los pasteles al caer. \xA1Mira
-      la flecha!"
+    description: Una brisa suave
+    challengeDescription: "Brisa suave: toca cuando la l\xEDnea est\xE9 en el VERDE
+      y el pastel cae perfecto"
     thumbnail: {fileID: 21300000, guid: 27ec75bbd52775c468c78554a238d336, type: 3}
     background: {fileID: 21300000, guid: 97f6449832480154991461b0578ddfb0, type: 3}
     music: {fileID: 0}
@@ -119,13 +127,16 @@ MonoBehaviour:
     hearts: 3
     flavorCount: 3
     baseWidth: 3.3
-    startSpeed: 2.6
+    startSpeed: 2.5
     speedPerFloor: 0.07
     speedPerOrder: 0.25
     maxSpeed: 8
     perfectTolerance: 0.14
-    windStrength: 1.5
-    windChangeEvery: 4
+    windStrength: 0.55
+    windChangeEvery: 5
+    timingMeter: 1
+    meterGreenSize: 0.24
+    meterSpeed: 0.75
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -135,15 +146,20 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
@@ -167,6 +183,9 @@ MonoBehaviour:
     perfectTolerance: 0.13
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0.3
     burntRatio: 1
     decoyPasses: 2
@@ -176,15 +195,20 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
@@ -208,6 +232,9 @@ MonoBehaviour:
     perfectTolerance: 0.13
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -217,15 +244,20 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
@@ -249,6 +281,9 @@ MonoBehaviour:
     perfectTolerance: 0.12
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -256,17 +291,22 @@ MonoBehaviour:
     fanForce: 5
     fanDuration: 2.6
     flyEvery: 6
-    flySpeed: 1.6
+    flySpeed: 1.3
     maxFlies: 2
+    flySpawnDistance: 2.2
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
@@ -290,6 +330,9 @@ MonoBehaviour:
     perfectTolerance: 0.12
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -299,22 +342,28 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 11
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
     challenges: 
   - title: "Apag\xF3n Dulce"
     description: "Apag\xF3n"
-    challengeDescription: "Las luces se apagan a ratos: \xA1construye casi a ciegas!"
+    challengeDescription: "\xA1Se va la luz! A los 5 segundos todo queda muy oscuro:
+      construye con una luz tenue"
     thumbnail: {fileID: 21300000, guid: 52b6eccdbb459dc4bb39213069c1328b, type: 3}
     background: {fileID: 21300000, guid: ee901b51edaf2534a8d1e04e2a21d3a1, type: 3}
     music: {fileID: 0}
@@ -323,13 +372,16 @@ MonoBehaviour:
     hearts: 3
     flavorCount: 5
     baseWidth: 3.1
-    startSpeed: 3.3
+    startSpeed: 3.1
     speedPerFloor: 0.07
     speedPerOrder: 0.25
     maxSpeed: 8
     perfectTolerance: 0.12
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -339,23 +391,28 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
-    blackoutEvery: 10
-    blackoutDuration: 4.5
+    blackoutEvery: 13
+    blackoutDuration: 9
+    blackoutFirstDelay: 5
+    blackoutLightDim: 0.55
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
     challenges: 
-  - title: Tormenta de Pasteles
-    description: Tormenta de pasteles
-    challengeDescription: "Viento fuerte + temblores + pasteles quemados, \xA1en
-      cualquier momento!"
+  - title: El Cliente Exigente
+    description: "\xA1El cliente exigente!"
+    challengeDescription: "\xA1Contra reloj! El cliente cambia de opini\xF3n: toca
+      los pasteles que ya no van y rehazlos"
     thumbnail: {fileID: 21300000, guid: a85767bac8e5e5843ae99a26fa182f41, type: 3}
     background: {fileID: 21300000, guid: 1ef9ef44dd381ec4d99d727e4eaeed21, type: 3}
     music: {fileID: 0}
@@ -363,16 +420,19 @@ MonoBehaviour:
     floorsPerOrder: 8
     hearts: 3
     flavorCount: 6
-    baseWidth: 3
-    startSpeed: 3.4
+    baseWidth: 3.1
+    startSpeed: 3.1
     speedPerFloor: 0.07
     speedPerOrder: 0.25
     maxSpeed: 8
-    perfectTolerance: 0.11
-    windStrength: 2.1
-    windChangeEvery: 3
-    decoyChance: 0.3
-    burntRatio: 1
+    perfectTolerance: 0.12
+    windStrength: 0
+    windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
+    decoyChance: 0.22
+    burntRatio: 0
     decoyPasses: 2
     fanEvery: 0
     fanForce: 5
@@ -380,17 +440,22 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
-    tremorEvery: 13
-    tremorDuration: 3.5
-    tremorStrength: 5.5
+    flySpawnDistance: 0
+    tremorEvery: 0
+    tremorDuration: 4
+    tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
-    orderChangeChance: 0
+    orderChangeChance: 1
+    orderChangeFloors: 2
+    tapToDiscard: 1
     flavorShiftInterval: 0
-    patienceSeconds: 0
+    patienceSeconds: 75
     challengeChance: 0
     challenges: 
   - title: Nube de Harina
@@ -412,6 +477,9 @@ MonoBehaviour:
     perfectTolerance: 0.11
     windStrength: 0
     windChangeEvery: 4
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
     decoyChance: 0
     burntRatio: 1
     decoyPasses: 2
@@ -421,23 +489,28 @@ MonoBehaviour:
     flyEvery: 0
     flySpeed: 1.6
     maxFlies: 1
+    flySpawnDistance: 0
     tremorEvery: 0
     tremorDuration: 4
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 10
     flourDuration: 3
     movingPlateSpeed: 1
     orderChangeChance: 0
+    orderChangeFloors: 0
+    tapToDiscard: 0
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0
     challenges: 
-  - title: El Cliente Exigente
-    description: "\xA1El cliente exigente!"
-    challengeDescription: El cliente CAMBIA su pedido a mitad + viento, temblores,
-      moscas y pasteles defectuosos
+  - title: Tormenta de Pasteles
+    description: "\xA1La gran tormenta!"
+    challengeDescription: "Brisa suave + MUCHAS moscas + temblores + pasteles quemados
+      + el cliente cambia de opini\xF3n"
     thumbnail: {fileID: 21300000, guid: 18dfd9fa05b458d4299c79f03de6157b, type: 3}
     background: {fileID: 21300000, guid: 23082f6ed60d2fd4fa4d7c21584dd46a, type: 3}
     music: {fileID: 0}
@@ -446,31 +519,39 @@ MonoBehaviour:
     hearts: 3
     flavorCount: 7
     baseWidth: 3
-    startSpeed: 3.6
+    startSpeed: 3.4
     speedPerFloor: 0.08
     speedPerOrder: 0.25
     maxSpeed: 8
     perfectTolerance: 0.1
-    windStrength: 1.8
-    windChangeEvery: 3.5
-    decoyChance: 0.3
-    burntRatio: 0.5
+    windStrength: 0.6
+    windChangeEvery: 4.5
+    timingMeter: 0
+    meterGreenSize: 0.22
+    meterSpeed: 0.8
+    decoyChance: 0.28
+    burntRatio: 0.6
     decoyPasses: 2
     fanEvery: 0
     fanForce: 5
     fanDuration: 2.6
-    flyEvery: 8
-    flySpeed: 1.8
-    maxFlies: 1
-    tremorEvery: 15
+    flyEvery: 3.2
+    flySpeed: 1.5
+    maxFlies: 3
+    flySpawnDistance: 2.6
+    tremorEvery: 12
     tremorDuration: 3.5
     tremorStrength: 5
     blackoutEvery: 0
     blackoutDuration: 4
+    blackoutFirstDelay: 0
+    blackoutLightDim: 0
     flourEvery: 0
     flourDuration: 3
     movingPlateSpeed: 0
     orderChangeChance: 1
+    orderChangeFloors: 2
+    tapToDiscard: 1
     flavorShiftInterval: 0
     patienceSeconds: 0
     challengeChance: 0

@@ -77,10 +77,8 @@ public static class OrderGenerator
             }
         }
 
-        // Paciencia (con un poco de variación)
-        o.patience = level.patienceSeconds > 0f
-            ? level.patienceSeconds * (0.9f + (float)rng.NextDouble() * 0.2f)
-            : 0f;
+        // Cronómetro (segundos exactos para que el jugador sepa cuánto tiene)
+        o.patience = level.patienceSeconds > 0f ? level.patienceSeconds : 0f;
         return o;
     }
 
@@ -97,6 +95,26 @@ public static class OrderGenerator
     /// El cliente cambia de opinión: cambia el sabor de un piso que todavía no se ha hecho.
     /// Devuelve el índice del piso cambiado (o -1).
     /// </summary>
+    /// <summary>
+    /// El cliente cambia de opinión sobre los ÚLTIMOS pisos ya puestos (de "fromFloor" a "toFloorExclusive").
+    /// Devuelve los pisos que cambiaron.
+    /// </summary>
+    public static List<int> ChangePlacedFloors(System.Random rng, CakeOrder o, int fromFloor, int toFloorExclusive)
+    {
+        List<int> changed = new List<int>();
+        if (o.pool.Count < 2) return changed;
+        for (int j = System.Math.Max(0, fromFloor); j < System.Math.Min(toFloorExclusive, o.flavors.Length); j++)
+        {
+            int old = o.flavors[j];
+            int guard = 0, flavor;
+            do { flavor = o.pool[rng.Next(o.pool.Count)]; guard++; } while (flavor == old && guard < 30);
+            if (flavor == old) continue;
+            o.flavors[j] = flavor;
+            changed.Add(j);
+        }
+        return changed;
+    }
+
     public static int ChangeFloor(System.Random rng, CakeOrder o, int firstFreeFloor)
     {
         if (firstFreeFloor >= o.flavors.Length || o.pool.Count < 2) return -1;

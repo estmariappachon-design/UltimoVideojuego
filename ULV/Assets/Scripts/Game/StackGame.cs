@@ -27,7 +27,7 @@ public class StackGame : MonoBehaviour
     /// <summary>Nivel para probar sin Firebase (lo usa el mapa y el botón Siguiente).</summary>
     public static int OfflineLevel;
 
-    private enum State { Intro, OrderIntro, Sliding, Dropping, Busy, Paused, Ended }
+    private enum State { Intro, OrderIntro, Sliding, Dropping, Fixing, Busy, Paused, Ended }
 
     [Header("Escena")]
     public Camera cam;
@@ -93,6 +93,8 @@ public class StackGame : MonoBehaviour
     public int pointsPerHeartLeft = 50;
     public int pointsPerFly = 15;
     public int pointsPerDecoyAvoided = 20;
+    [Tooltip("Puntos por quitar un piso que el cliente ya no quería")]
+    public int pointsPerWrongRemoved = 10;
 
     [Header("Pruebas sin Firebase (Play directo en GameScene)")]
     [Range(1, 10)] public int testLevel = 1;
@@ -136,6 +138,8 @@ public class StackGame : MonoBehaviour
     private float shiftTimer;
     private int shiftIndex;
     private bool dropRequested;
+    private bool lastDropGreen;
+    private readonly List<CakeLayer> wrongLayers = new List<CakeLayer>();
 
     // Torre
     private float baseTowerX, baseTowerY;
@@ -205,13 +209,16 @@ public class StackGame : MonoBehaviour
         hud.HideEvent();
         hud.ticket.SetVisible(false);
         if (effects != null) effects.StopAll();
+        hud.EnsureExtras();
+        if (hud.timingMeter != null) hud.timingMeter.Show(level.timingMeter);
+        if (hud.orderTimer != null) hud.orderTimer.Show(false);
 
         // Retos del nivel
         if (fan != null) fan.gameObject.SetActive(level.fanEvery > 0f);
         if (windEffect != null) windEffect.maxWind = Mathf.Max(0.01f, Mathf.Max(level.windStrength, level.fanEvery > 0f ? level.fanForce : 0f));
         fanTimer = FirstDelay(level.fanEvery);
         tremorTimer = FirstDelay(level.tremorEvery);
-        blackoutTimer = FirstDelay(level.blackoutEvery);
+        blackoutTimer = level.blackoutFirstDelay > 0f ? level.blackoutFirstDelay : FirstDelay(level.blackoutEvery);
         flourTimer = FirstDelay(level.flourEvery);
         flyTimer = FirstDelay(level.flyEvery);
 
@@ -249,6 +256,8 @@ public class StackGame : MonoBehaviour
         lastWasDecoy = false;
         patienceLeft = order.patience;
         tickPlayed = false;
+        wrongLayers.Clear();
+        if (level.blackoutEvery > 0f && level.blackoutFirstDelay > 0f) blackoutTimer = level.blackoutFirstDelay;
         orderChangeFloor = level.orderChangeChance > 0f && rng.NextDouble() < level.orderChangeChance && level.floorsPerOrder > 4
             ? rng.Next(2, level.floorsPerOrder - 2) : -1;
 
@@ -272,6 +281,11 @@ public class StackGame : MonoBehaviour
         hud.ticket.Show(order, catalog.flavors, string.Format(hud.ticketTitleFormat, name), ChallengeText());
         hud.ticket.SetVisible(true);
         hud.ticket.Pop();
+        if (hud.orderTimer != null)
+        {
+            hud.orderTimer.Show(order.patience > 0f);
+            if (order.patience > 0f) hud.orderTimer.Set(patienceLeft, order.patience);
+        }
         SpawnMovingLayer();
     }
 
@@ -334,6 +348,7 @@ public class StackGame : MonoBehaviour
 
         speed = Mathf.Min(level.maxSpeed, level.startSpeed + level.speedPerFloor * floor + level.speedPerOrder * orderIndex);
         dropRequested = false;
+        if (level.timingMeter && hud.timingMeter != null) hud.timingMeter.NewRound(rng, level.meterGreenSize, level.meterSpeed);
         state = State.Sliding;
         if (hud.tapHint != null) hud.tapHint.SetActive(orderIndex == 0 && floor == 0 && levelNumber == 1);
     }
@@ -358,11 +373,12 @@ public class StackGame : MonoBehaviour
             return;
         }
 
+        Vector3 w = cam != null ? cam.ScreenToWorldPoint(screenPosition) : Vector3.zero;
+        w.z = 0f;
+
         // ¿Tocó una mosca?
         if (cam != null && Fly.All.Count > 0)
         {
-            Vector3 w = cam.ScreenToWorldPoint(screenPosition);
-            w.z = 0f;
             foreach (Fly f in Fly.All.ToArray())
             {
                 if (f == null || !f.IsActive || !f.ContainsPoint(w)) continue;
@@ -370,10 +386,25 @@ public class StackGame : MonoBehaviour
                 fliesShooed++;
                 score += pointsPerFly;
                 AudioManager.Play(AudioManager.Sfx.Shoo);
-                hud.Popup(hud.flyShooedMessage + " +" + pointsPerFly, new Color(0.45f, 0.75f, 0.5f));
+                hud.Popup(hud.flyShooedMessage + " +" + pointsPerFly, new Color(0.3f, 0.7f, 0.4f));
                 UpdateHud();
                 return;
             }
+        }
+
+        // El cliente cambió el pedido: hay que tocar los pisos que parpadean para quitarlos
+        if (state == State.Fixing)
+        {
+            if (cam != null && TryRemoveWrong(w)) return;
+            hud.ShowEvent(hud.removeWrongMessage, 999f);
+            return;
+        }
+
+        // Tocar un pastel que NO va lo bota (niveles con "Tap To Discard")
+        if (state == State.Sliding && isDecoy && level.tapToDiscard && moving != null && cam != null && moving.ContainsPoint(w, 0.35f))
+        {
+            StartCoroutine(DecoyLeaves(true));
+            return;
         }
 
         // Temblor: cada toque sujeta la torre
@@ -396,6 +427,15 @@ public class StackGame : MonoBehaviour
         UpdateWind();
         UpdateHazards();
         UpdateTowerTransform();
+        UpdateTimer();
+
+        if (state == State.Fixing)
+        {
+            // Por si un piso marcado se cayó por otra razón (temblor)
+            wrongLayers.RemoveAll(l => l == null || !placed.Contains(l));
+            if (wrongLayers.Count == 0) StartCoroutine(AfterFix());
+            return;
+        }
 
         if (state != State.Sliding || moving == null) return;
 
@@ -405,25 +445,8 @@ public class StackGame : MonoBehaviour
             return;
         }
 
-        // Paciencia del cliente
-        if (order.patience > 0f)
-        {
-            patienceLeft -= Time.deltaTime;
-            hud.ticket.SetPatience(patienceLeft / order.patience);
-            if (!tickPlayed && patienceLeft < order.patience * 0.25f)
-            {
-                tickPlayed = true;
-                AudioManager.Play(AudioManager.Sfx.Tick);
-                if (customer != null) customer.SetMood(CustomerView.Mood.Angry);
-            }
-            if (patienceLeft <= 0f)
-            {
-                Destroy(moving.gameObject);
-                moving = null;
-                StartCoroutine(OrderFailed(hud.patienceOutMessage));
-                return;
-            }
-        }
+        // Medidor de precisión
+        if (level.timingMeter && hud.timingMeter != null) hud.timingMeter.Tick(Time.deltaTime);
 
         // Movimiento de lado a lado (+ viento)
         Vector3 p = moving.transform.position;
@@ -463,11 +486,37 @@ public class StackGame : MonoBehaviour
         {
             dropRequested = false;
             if (hud.tapHint != null) hud.tapHint.SetActive(false);
-            StartCoroutine(DropRoutine());
+            bool green = level.timingMeter && hud.timingMeter != null && hud.timingMeter.InGreen;
+            if (level.timingMeter && hud.timingMeter != null) hud.timingMeter.Feedback(green);
+            StartCoroutine(DropRoutine(green));
         }
     }
 
-    private IEnumerator DecoyLeaves()
+    /// <summary>Cronómetro del pedido (corre mientras se juega, también mientras quitas pisos).</summary>
+    private void UpdateTimer()
+    {
+        if (order == null || order.patience <= 0f) return;
+        if (state != State.Sliding && state != State.Dropping && state != State.Fixing) return;
+
+        patienceLeft -= Time.deltaTime;
+        hud.ticket.SetPatience(patienceLeft / order.patience);
+        if (hud.orderTimer != null) hud.orderTimer.Set(patienceLeft, order.patience);
+        if (!tickPlayed && patienceLeft < Mathf.Min(10f, order.patience * 0.25f))
+        {
+            tickPlayed = true;
+            AudioManager.Play(AudioManager.Sfx.Tick);
+            if (customer != null) customer.SetMood(CustomerView.Mood.Angry);
+        }
+        if (patienceLeft <= 0f)
+        {
+            if (moving != null) { Destroy(moving.gameObject); moving = null; }
+            foreach (CakeLayer l in wrongLayers) if (l != null) l.SetWrong(false);
+            wrongLayers.Clear();
+            StartCoroutine(OrderFailed(hud.timeUpMessage));
+        }
+    }
+
+    private IEnumerator DecoyLeaves(bool tapped = false)
     {
         state = State.Busy;
         CakeLayer l = moving;
@@ -475,14 +524,17 @@ public class StackGame : MonoBehaviour
         decoysAvoided++;
         score += pointsPerDecoyAvoided;
         UpdateHud();
-        hud.Popup(hud.decoyAvoidedMessage, new Color(0.45f, 0.75f, 0.5f));
+        hud.Popup(tapped ? hud.discardedMessage : hud.decoyAvoidedMessage, new Color(0.3f, 0.7f, 0.4f));
         AudioManager.Play(AudioManager.Sfx.DecoyAvoided);
 
         float dir = l.transform.position.x >= baseTowerX ? 1f : -1f;
         Vector3 from = l.transform.position;
+        if (tapped) l.Scare();
         for (float t = 0f; t < 0.45f; t += Time.deltaTime)
         {
-            l.transform.position = from + new Vector3(dir * t * 28f, Mathf.Sin(t / 0.45f * Mathf.PI) * 0.6f, 0f);
+            l.transform.position = tapped
+                ? from + new Vector3(dir * t * 10f, Mathf.Sin(t / 0.45f * Mathf.PI) * 1.4f - t * t * 20f, 0f)
+                : from + new Vector3(dir * t * 28f, Mathf.Sin(t / 0.45f * Mathf.PI) * 0.6f, 0f);
             l.SetAlpha(1f - t / 0.45f);
             yield return null;
         }
@@ -700,7 +752,7 @@ public class StackGame : MonoBehaviour
         bigEventActive = true;
         hud.ShowEvent(hud.blackoutMessage, 1.4f);
         AudioManager.Play(AudioManager.Sfx.LightsOff);
-        yield return effects.Blackout(level.blackoutDuration, BlackoutFocus, cam);
+        yield return effects.Blackout(level.blackoutDuration, BlackoutFocus, cam, level.blackoutLightDim);
         bigEventActive = false;
     }
 
@@ -723,8 +775,24 @@ public class StackGame : MonoBehaviour
     {
         CakeLayer target = placed[rng.Next(placed.Count)];
         float side = rng.Next(2) == 0 ? -1f : 1f;
-        float halfW = cam != null ? cam.orthographicSize * cam.aspect : 9f;
-        Vector3 start = new Vector3((cam != null ? cam.transform.position.x : 0f) + side * (halfW + 1f), baseTowerY + Range(1f, 5f), 0f);
+        Vector3 start;
+        if (level.flySpawnDistance > 0f)
+        {
+            // Aparece CERCA del pastel (a un lado y un poco arriba)
+            Vector3 tp = target.transform.position;
+            float d = level.flySpawnDistance;
+            start = new Vector3(tp.x + side * Range(target.Width * 0.5f + 0.4f, target.Width * 0.5f + d), tp.y + Range(0.5f, d), 0f);
+            if (cam != null)
+            {
+                float top = cam.transform.position.y + cam.orthographicSize - 0.8f;
+                start.y = Mathf.Min(start.y, top);
+            }
+        }
+        else
+        {
+            float halfW = cam != null ? cam.orthographicSize * cam.aspect : 9f;
+            start = new Vector3((cam != null ? cam.transform.position.x : 0f) + side * (halfW + 1f), baseTowerY + Range(1f, 5f), 0f);
+        }
         Fly f = Instantiate(flyPrefab, start, Quaternion.identity);
         Vector3 offset = new Vector3(Range(-target.Width * 0.3f, target.Width * 0.3f), LayerH * 0.55f, 0f);
         f.Setup(target.transform, offset, level.flySpeed * Range(0.85f, 1.15f), OnFlyDamage);
@@ -757,23 +825,27 @@ public class StackGame : MonoBehaviour
     }
 
     // ================================================================== SOLTAR
-    private IEnumerator DropRoutine()
+    /// <param name="snap">true = se tocó en el VERDE del medidor: cae justo en su lugar, el viento no la mueve</param>
+    private IEnumerator DropRoutine(bool snap = false)
     {
         state = State.Dropping;
+        lastDropGreen = snap;
         CakeLayer layer = moving;
         Vector3 start = layer.transform.position;
         float x = start.x;
 
         for (float t = 0f; t < dropTime; t += Time.deltaTime)
         {
-            if (layer == null || state == State.Ended) yield break;
+            if (layer == null || state == State.Ended || state == State.Busy) yield break;
             float k = t / dropTime;
-            x += EffectiveWind * windOnDrop * Time.deltaTime;
+            if (snap) x = Mathf.Lerp(start.x, towerRoot.position.x + topX, Mathf.SmoothStep(0f, 1f, k));
+            else x += EffectiveWind * windOnDrop * Time.deltaTime;
             float targetY = baseTowerY + FloorCenterLocalY(floor);
             layer.transform.position = new Vector3(x, Mathf.Lerp(start.y, targetY, k * k), 0f);
             yield return null;
         }
-        if (layer == null || state == State.Ended) yield break;
+        if (layer == null || state == State.Ended || state == State.Busy) yield break;
+        if (snap) x = towerRoot.position.x + topX;
         layer.transform.position = new Vector3(x, baseTowerY + FloorCenterLocalY(floor), 0f);
         Land(layer);
     }
@@ -819,7 +891,9 @@ public class StackGame : MonoBehaviour
             score += pointsPerLayer + pointsPerPerfect * combo;
             AudioManager.PlayPitched(AudioManager.Sfx.Perfect, 1f + 0.08f * Mathf.Min(combo - 1, 8));
             AudioManager.Vibrate();
-            hud.Popup(combo > 1 ? string.Format(hud.perfectComboFormat, combo) : hud.perfectMessage, new Color(1f, 0.55f, 0.75f));
+            string msg = combo > 1 ? string.Format(hud.perfectComboFormat, combo) : hud.perfectMessage;
+            if (lastDropGreen) msg = hud.meterGreenMessage + (combo > 1 ? " x" + combo : "");
+            hud.Popup(msg, new Color(1f, 0.3f, 0.6f));
             if (confetti != null) confetti.Burst(layer.transform.position + Vector3.up * 0.3f, 8, 4f, 0.2f);
             if (customer != null) customer.Hop();
         }
@@ -851,7 +925,7 @@ public class StackGame : MonoBehaviour
             Place(layer, center - towerRoot.position.x, overlap);
             score += pointsPerLayer;
             AudioManager.Play(AudioManager.Sfx.Cut);
-            hud.Popup(hud.goodMessage, new Color(0.55f, 0.75f, 1f));
+            hud.Popup(hud.goodMessage, new Color(0.2f, 0.5f, 1f));
         }
 
         floor++;
@@ -908,6 +982,33 @@ public class StackGame : MonoBehaviour
     {
         state = State.Busy;
         orderChangeFloor = -1;
+
+        // Versión nueva: el cliente cambia pisos YA PUESTOS → hay que tocarlos para quitarlos y rehacerlos
+        if (level.orderChangeFloors > 0 && placed.Count > 0)
+        {
+            int n = Mathf.Min(placed.Count, rng.Next(1, level.orderChangeFloors + 1));
+            List<int> changed = OrderGenerator.ChangePlacedFloors(rng, order, placed.Count - n, placed.Count);
+            if (changed.Count > 0)
+            {
+                if (customer != null) { customer.SetMood(CustomerView.Mood.Normal); customer.Hop(); }
+                AudioManager.Play(AudioManager.Sfx.OrderChange);
+                foreach (int j2 in changed)
+                {
+                    hud.ticket.ChangeRow(j2, catalog.flavors[order.flavors[j2]]);
+                    placed[j2].SetWrong(true);
+                    wrongLayers.Add(placed[j2]);
+                }
+                hud.ticket.SetCurrentFloor(changed[0]);
+                string what = changed.Count == 1 ? hud.oneFloorWord : string.Format(hud.manyFloorsWord, changed.Count);
+                hud.ShowMessage(string.Format(hud.orderChangePlacedFormat, what), 2.2f);
+                yield return new WaitForSeconds(1.2f);
+                if (state == State.Ended) yield break;
+                state = State.Fixing;
+                hud.ShowEvent(hud.removeWrongMessage, 999f);
+                yield break;
+            }
+        }
+
         int j = OrderGenerator.ChangeFloor(rng, order, floor);
         if (j >= 0)
         {
@@ -919,6 +1020,48 @@ public class StackGame : MonoBehaviour
             yield return new WaitForSeconds(1.8f);
         }
         if (state == State.Ended) yield break;
+        SpawnMovingLayer();
+    }
+
+    /// <summary>Toque durante el cambio de pedido: si tocó un piso que parpadea, lo quita (y los de encima).</summary>
+    private bool TryRemoveWrong(Vector3 worldPoint)
+    {
+        for (int i = placed.Count - 1; i >= 0; i--)
+        {
+            CakeLayer l = placed[i];
+            if (l == null || !l.IsWrong || !l.ContainsPoint(worldPoint)) continue;
+            for (int k = placed.Count - 1; k >= i; k--)
+            {
+                CakeLayer r = placed[k];
+                placed.RemoveAt(k);
+                wrongLayers.Remove(r);
+                if (r == null) continue;
+                r.SetWrong(false);
+                r.Fall(k % 2 == 0 ? -3.5f : 3.5f);
+                score += pointsPerWrongRemoved;
+            }
+            floor = placed.Count;
+            RecomputeTop();
+            hud.ticket.SetCurrentFloor(floor);
+            UpdateHud();
+            hud.Popup(hud.wrongRemovedMessage + " +" + pointsPerWrongRemoved, new Color(0.3f, 0.7f, 0.4f));
+            AudioManager.Play(AudioManager.Sfx.Shoo);
+            wrongLayers.RemoveAll(x => x == null || !placed.Contains(x));
+            if (wrongLayers.Count == 0) StartCoroutine(AfterFix());
+            return true;
+        }
+        return false;
+    }
+
+    private IEnumerator AfterFix()
+    {
+        if (state != State.Fixing) yield break;
+        state = State.Busy;
+        hud.HideEvent();
+        if (customer != null) customer.SetMood(CustomerView.Mood.Happy);
+        yield return new WaitForSeconds(0.4f);
+        if (state == State.Ended) yield break;
+        if (customer != null) customer.SetMood(CustomerView.Mood.Normal);
         SpawnMovingLayer();
     }
 
@@ -934,6 +1077,9 @@ public class StackGame : MonoBehaviour
         if (effects != null) effects.StopAll();
         hud.ShowStability(false);
         hud.HideEvent();
+        if (hud.orderTimer != null) hud.orderTimer.Show(false);
+        foreach (CakeLayer l in wrongLayers) if (l != null) l.SetWrong(false);
+        wrongLayers.Clear();
         OnOrderEnded?.Invoke();
     }
 

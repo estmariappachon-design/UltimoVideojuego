@@ -51,6 +51,12 @@ public static class CakeBuilder
     private static readonly string[] Titles =
     {
         "Pastelería Rosa", "Café Menta", "Horno Travieso", "El Ventilador", "Picnic con Moscas",
+        "Mesa Temblorosa", "Apagón Dulce", "El Cliente Exigente", "Nube de Harina", "Tormenta de Pasteles"
+    };
+    // Títulos que traía el juego antes (si tu nivel tiene uno de estos, se cambia por el nuevo; si le pusiste otro, se respeta)
+    private static readonly string[] OldDefaultTitles =
+    {
+        "Pastelería Rosa", "Café Menta", "Horno Travieso", "El Ventilador", "Picnic con Moscas",
         "Mesa Temblorosa", "Apagón Dulce", "Tormenta de Pasteles", "Nube de Harina", "El Cliente Exigente"
     };
 
@@ -203,7 +209,7 @@ public static class CakeBuilder
     //  CATÁLOGO: sabores, clientes y niveles (con los 10 retos)
     // =====================================================================
 
-    private static void BuildCatalog()
+    internal static void BuildCatalog()
     {
         EnsureFolder("Assets", "Resources");
         LevelCatalog c = Load<LevelCatalog>(CatalogPath);
@@ -269,6 +275,7 @@ public static class CakeBuilder
                 if (old.background != null) e.background = old.background;
                 if (old.thumbnail != null) e.thumbnail = old.thumbnail;
                 if (old.music != null) e.music = old.music;
+                if (!string.IsNullOrEmpty(old.title) && System.Array.IndexOf(OldDefaultTitles, old.title) < 0) e.title = old.title;
             }
             c.levels[i - 1] = e;
         }
@@ -304,10 +311,11 @@ public static class CakeBuilder
                 e.flavorCount = 3; e.baseWidth = 3.4f; e.startSpeed = 2.3f; e.perfectTolerance = 0.15f;
                 break;
             case 2:
-                e.description = "Una brisa se lleva los pasteles";
-                e.challengeDescription = "Brisa: el viento empuja los pasteles al caer. ¡Mira la flecha!";
-                e.flavorCount = 3; e.baseWidth = 3.3f; e.startSpeed = 2.6f; e.perfectTolerance = 0.14f;
-                e.windStrength = 1.5f; e.windChangeEvery = 4f;
+                e.description = "Una brisa suave";
+                e.challengeDescription = "Brisa suave: toca cuando la línea esté en el VERDE y el pastel cae perfecto";
+                e.flavorCount = 3; e.baseWidth = 3.3f; e.startSpeed = 2.5f; e.perfectTolerance = 0.14f;
+                e.windStrength = 0.55f; e.windChangeEvery = 5f;
+                e.timingMeter = true; e.meterGreenSize = 0.24f; e.meterSpeed = 0.75f;
                 break;
             case 3:
                 e.description = "Pasteles quemados";
@@ -325,7 +333,7 @@ public static class CakeBuilder
                 e.description = "Moscas golosas";
                 e.challengeDescription = "Toca las MOSCAS para espantarlas antes de que dañen un pastel";
                 e.flavorCount = 5; e.baseWidth = 3.1f; e.startSpeed = 3.1f; e.perfectTolerance = 0.12f;
-                e.flyEvery = 6f; e.flySpeed = 1.6f; e.maxFlies = 2;
+                e.flyEvery = 6f; e.flySpeed = 1.3f; e.maxFlies = 2; e.flySpawnDistance = 2.2f;   // aparecen cerca del pastel
                 break;
             case 6:
                 e.description = "La mesa tiembla";
@@ -335,17 +343,17 @@ public static class CakeBuilder
                 break;
             case 7:
                 e.description = "Apagón";
-                e.challengeDescription = "Las luces se apagan a ratos: ¡construye casi a ciegas!";
-                e.flavorCount = 5; e.baseWidth = 3.1f; e.startSpeed = 3.3f; e.perfectTolerance = 0.12f;
-                e.blackoutEvery = 10f; e.blackoutDuration = 4.5f;
+                e.challengeDescription = "¡Se va la luz! A los 5 segundos todo queda muy oscuro: construye con una luz tenue";
+                e.flavorCount = 5; e.baseWidth = 3.1f; e.startSpeed = 3.1f; e.perfectTolerance = 0.12f;
+                e.blackoutFirstDelay = 5f; e.blackoutEvery = 13f; e.blackoutDuration = 9f; e.blackoutLightDim = 0.55f;
                 break;
             case 8:
-                e.description = "Tormenta de pasteles";
-                e.challengeDescription = "Viento fuerte + temblores + pasteles quemados, ¡en cualquier momento!";
-                e.flavorCount = 6; e.baseWidth = 3f; e.startSpeed = 3.4f; e.perfectTolerance = 0.11f;
-                e.windStrength = 2.1f; e.windChangeEvery = 3f;
-                e.tremorEvery = 13f; e.tremorDuration = 3.5f; e.tremorStrength = 5.5f;
-                e.decoyChance = 0.3f; e.burntRatio = 1f;
+                e.description = "¡El cliente exigente!";
+                e.challengeDescription = "¡Contra reloj! El cliente cambia de opinión: toca los pasteles que ya no van y rehazlos";
+                e.flavorCount = 6; e.baseWidth = 3.1f; e.startSpeed = 3.1f; e.perfectTolerance = 0.12f;
+                e.orderChangeChance = 1f; e.orderChangeFloors = 2;
+                e.decoyChance = 0.22f; e.burntRatio = 0f; e.tapToDiscard = true;
+                e.patienceSeconds = 75f;
                 break;
             case 9:
                 e.description = "Nube de harina";
@@ -354,14 +362,14 @@ public static class CakeBuilder
                 e.flourEvery = 10f; e.flourDuration = 3f; e.movingPlateSpeed = 1f;
                 break;
             default:
-                e.description = "¡El cliente exigente!";
-                e.challengeDescription = "El cliente CAMBIA su pedido a mitad + viento, temblores, moscas y pasteles defectuosos";
-                e.flavorCount = 7; e.baseWidth = 3f; e.startSpeed = 3.6f; e.perfectTolerance = 0.1f; e.speedPerFloor = 0.08f;
-                e.orderChangeChance = 1f;
-                e.windStrength = 1.8f; e.windChangeEvery = 3.5f;
-                e.tremorEvery = 15f; e.tremorDuration = 3.5f; e.tremorStrength = 5f;
-                e.flyEvery = 8f; e.flySpeed = 1.8f; e.maxFlies = 1;
-                e.decoyChance = 0.3f; e.burntRatio = 0.5f;
+                e.description = "¡La gran tormenta!";
+                e.challengeDescription = "Brisa suave + MUCHAS moscas + temblores + pasteles quemados + el cliente cambia de opinión";
+                e.flavorCount = 7; e.baseWidth = 3f; e.startSpeed = 3.4f; e.perfectTolerance = 0.1f; e.speedPerFloor = 0.08f;
+                e.windStrength = 0.6f; e.windChangeEvery = 4.5f;
+                e.flyEvery = 3.2f; e.flySpeed = 1.5f; e.maxFlies = 3; e.flySpawnDistance = 2.6f;
+                e.tremorEvery = 12f; e.tremorDuration = 3.5f; e.tremorStrength = 5f;
+                e.decoyChance = 0.28f; e.burntRatio = 0.6f; e.tapToDiscard = true;
+                e.orderChangeChance = 1f; e.orderChangeFloors = 2;
                 break;
         }
         return e;
@@ -737,6 +745,7 @@ public static class CakeBuilder
         // Harina: varias nubes que tapan la pantalla
         RectTransform flour = NewUI("Harina", layer);
         Stretch(flour);
+        flour.gameObject.AddComponent<CubrirPantalla>();
         Sprite flourSprite = UITheme.Get(ThemeKey.Harina) ?? Spr("Efectos/harina.png");
         Image[] puffs = new Image[8];
         for (int i = 0; i < puffs.Length; i++)
@@ -824,6 +833,12 @@ public static class CakeBuilder
         hud.orderChallengeText.fontSizeMax = 26;
         Stretch(hud.orderChallengeText.rectTransform, 16, 16, 4, 4);
         hud.challengeBanner = banner.gameObject;
+
+        // ---------- Medidor de precisión (nivel 2) y cronómetro (nivel 8) ----------
+        Sprite roundUI = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+        Sprite knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+        hud.timingMeter = TimingMeterUI.Create(safe, null, roundUI);
+        hud.orderTimer = OrderTimerUI.Create(safe, null, roundUI, knob);
 
         // ---------- Ticket del pedido (arriba a la derecha, donde estaba) ----------
         hud.ticket = BuildTicket(safe);
@@ -1293,6 +1308,7 @@ public static class CakeBuilder
         new Vector2(2200, 40), new Vector2(2560, 250), new Vector2(2940, 0), new Vector2(3320, -230), new Vector2(3740, 130),
     };
     private const float MapWidth = 4200f;
+    internal const float MapSideExtra = 400f;
 
     private static void BuildMainMenuScene()
     {
@@ -1336,12 +1352,12 @@ public static class CakeBuilder
         // ---------------- MAPA DE NIVELES ----------------
         RectTransform mapPanel = NewUI("MapaPanel", safe);
         Stretch(mapPanel);
-        Image mapBack = mapPanel.gameObject.AddComponent<Image>();
-        mapBack.color = new Color(0.72f, 0.88f, 1f);   // por si el fondo del mapa no llena
+        FullScreenBack(mapPanel, new Color(0.72f, 0.88f, 1f));   // cubre toda la pantalla (también los bordes del notch)
 
         // Scroll horizontal
         RectTransform scrollRt = NewUI("Scroll", mapPanel);
         Stretch(scrollRt);
+        scrollRt.gameObject.AddComponent<CubrirPantalla>().margen = 0f;   // el mapa llega hasta los bordes de la pantalla
         ScrollRect scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
         scroll.horizontal = true;
         scroll.vertical = false;
@@ -1367,6 +1383,8 @@ public static class CakeBuilder
         Image mapBg = Themed(NewImage(content, "FondoMapa", Spr("UI/fondo_mapa.png"), new Color(0.75f, 0.9f, 1f)), ThemeKey.FondoMapa);
         mapBg.raycastTarget = false;
         Stretch(mapBg.rectTransform);
+        mapBg.rectTransform.offsetMin = new Vector2(-MapSideExtra, 0f);    // más grande a los lados: nunca se ve lo de atrás
+        mapBg.rectTransform.offsetMax = new Vector2(MapSideExtra, 0f);
 
         RectTransform path = NewUI("Camino", content);
         Stretch(path);
@@ -1822,12 +1840,24 @@ public static class CakeBuilder
         return img.rectTransform;
     }
 
+    /// <summary>Ventana encima de todo: fondo oscuro que cubre TODA la pantalla (aunque haya notch) y adentro sus paneles.</summary>
     private static RectTransform Overlay(Transform parent, string name)
     {
-        Image img = NewImage(parent, name, null, Dim);
-        Stretch(img.rectTransform);
-        img.gameObject.SetActive(false);
-        return img.rectTransform;
+        RectTransform root = NewUI(name, parent);
+        Stretch(root);
+        FullScreenBack(root, Dim);
+        root.gameObject.SetActive(false);
+        return root;
+    }
+
+    /// <summary>Fondo que tapa toda la pantalla (sale del SafeArea) sin cambiar el tamaño de los paneles.</summary>
+    internal static Image FullScreenBack(RectTransform parent, Color color)
+    {
+        Image back = NewImage(parent, "FondoPantalla", null, color);
+        back.raycastTarget = true;   // bloquea los toques de lo que está detrás
+        back.transform.SetAsFirstSibling();
+        back.gameObject.AddComponent<CubrirPantalla>();
+        return back;
     }
 
     private static RectTransform ButtonRow(Transform parent, float height)
