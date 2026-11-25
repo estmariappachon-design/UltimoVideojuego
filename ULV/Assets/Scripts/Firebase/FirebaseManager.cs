@@ -1,15 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Firebase;
-using Firebase.Auth;
-using Firebase.Database;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/// <summary>Usuario que inició sesión (mismos nombres que usaba el SDK de Firebase).</summary>
+public class FirebaseUserInfo
+{
+    public string UserId;
+    public string Email;
+    public string DisplayName;
+}
+
 /// <summary>
 /// Administrador único de Firebase (Singleton). Vive en LoginScene y sobrevive entre escenas.
-/// Se encarga de: inicializar Firebase, registrar, iniciar sesión, cargar/guardar progreso,
+/// Usa la API REST de Firebase (Authentication + Realtime Database) con UnityWebRequest,
+/// así funciona en WEBGL (navegador), Android, PC y en el editor, sin el SDK de Firebase.
+/// Se encarga de: registrar, iniciar sesión, mantener la sesión, cargar/guardar progreso,
 /// reportar resultados de nivel y leer el ranking.
 /// </summary>
 public class FirebaseManager : MonoBehaviour
@@ -23,16 +30,26 @@ public class FirebaseManager : MonoBehaviour
 
     public bool IsReady { get; private set; }
     public string InitError { get; private set; }
-    public FirebaseUser CurrentUser => auth != null ? auth.CurrentUser : null;
+    public FirebaseUserInfo CurrentUser { get; private set; }
     public PlayerProgress Progress { get; private set; }
 
-    /// <summary>Nivel que el jugador eligió en el menú (lo lee el LevelManager).</summary>
+    /// <summary>Nivel que el jugador eligió en el menú.</summary>
     public int SelectedLevel { get; set; } = 1;
 
-    private FirebaseAuth auth;
-    private DatabaseReference db;
+    private const string AuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:";
+    private const string TokenUrl = "https://securetoken.googleapis.com/v1/token?key=";
+    private const string PrefRefresh = "sugaru_fb_refresh";
+    private const string PrefUid = "sugaru_fb_uid";
+    private const string PrefEmail = "sugaru_fb_email";
+    private const string PrefName = "sugaru_fb_name";
 
-    private async void Awake()
+    private string apiKey;
+    private string dbUrl;
+    private string idToken;
+    private string refreshToken;
+    private float tokenExpiresAt;
+
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -42,35 +59,17 @@ public class FirebaseManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        await InitializeAsync();
-    }
-
-    private async Task InitializeAsync()
-    {
-        try
+        FirebaseConfig cfg = FirebaseConfig.Load();
+        if (cfg == null || !cfg.IsValid)
         {
-            DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync();
-            if (status != DependencyStatus.Available)
-            {
-                InitError = "No se pudieron resolver las dependencias de Firebase: " + status;
-                Debug.LogError(InitError);
-                return;
-            }
-
-            // Sin caché local: así siempre leemos el dato real del servidor.
-            // Debe llamarse ANTES de cualquier otro uso de la base de datos.
-            FirebaseDatabase.DefaultInstance.SetPersistenceEnabled(false);
-
-            auth = FirebaseAuth.DefaultInstance;
-            db = FirebaseDatabase.DefaultInstance.RootReference;
-            IsReady = true;
-            Debug.Log("Firebase inicializado correctamente.");
-        }
-        catch (Exception e)
-        {
-            InitError = "Error inicializando Firebase: " + e.Message;
+            InitError = "Falta la configuración de Firebase. En Unity usa: Torre de Pasteles → 9. Configurar Firebase.";
             Debug.LogError(InitError);
+            return;
         }
+        apiKey = cfg.apiKey.Trim();
+        dbUrl = cfg.databaseUrl.Trim().TrimEnd('/');
+        IsReady = true;
+        Debug.Log("Firebase (REST) listo: " + dbUrl);
     }
 
     // =====================================================================
@@ -80,14 +79,17 @@ public class FirebaseManager : MonoBehaviour
     /// <summary>Registra un usuario. Devuelve null si todo salió bien, o el mensaje de error.</summary>
     public async Task<string> RegisterAsync(string username, string email, string password)
     {
-        if (!IsReady) return "Firebase todavía no está listo.";
-
+        if (!IsReady) return InitError ?? "Firebase todavía no está listo.";
         try
         {
-            AuthResult result = await auth.CreateUserWithEmailAndPasswordAsync(email, password);
+            var body = new Dictionary<string, object> { { "email", email }, { "password", password }, { "returnSecureToken", true } };
+            FirebaseRest.Response r = await FirebaseRest.Send("POST", AuthUrl + "signUp?key=" + apiKey, SugaruJson.Serialize(body));
+            if (!r.Ok) return TranslateError(r);
+            ReadAuthResponse(r.text, username);
 
-            // Guardamos el nombre visible también en el perfil de Authentication
-            await result.User.UpdateUserProfileAsync(new UserProfile { DisplayName = username });
+            // Nombre visible también en el perfil de Authentication
+            var profile = new Dictionary<string, object> { { "idToken", idToken }, { "displayName", username }, { "returnSecureToken", false } };
+            await FirebaseRest.Send("POST", AuthUrl + "update?key=" + apiKey, SugaruJson.Serialize(profile));
 
             // Registro inicial: nivel 1 desbloqueado, el resto bloqueado, puntaje 0
             Progress = PlayerProgress.CreateNew(username, email);
@@ -96,48 +98,130 @@ public class FirebaseManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            return TranslateError(e);
+            return "Error: " + e.Message;
         }
     }
 
     /// <summary>Inicia sesión y carga el progreso. Devuelve null si todo salió bien.</summary>
     public async Task<string> LoginAsync(string email, string password)
     {
-        if (!IsReady) return "Firebase todavía no está listo.";
-
+        if (!IsReady) return InitError ?? "Firebase todavía no está listo.";
         try
         {
-            await auth.SignInWithEmailAndPasswordAsync(email, password);
+            var body = new Dictionary<string, object> { { "email", email }, { "password", password }, { "returnSecureToken", true } };
+            FirebaseRest.Response r = await FirebaseRest.Send("POST", AuthUrl + "signInWithPassword?key=" + apiKey, SugaruJson.Serialize(body));
+            if (!r.Ok) return TranslateError(r);
+            ReadAuthResponse(r.text, null);
             await LoadProgressAsync();
             return null;
         }
         catch (Exception e)
         {
-            return TranslateError(e);
+            return "Error: " + e.Message;
         }
     }
 
-    /// <summary>Si quedó una sesión abierta en el dispositivo, la reutiliza.</summary>
+    /// <summary>Si quedó una sesión guardada en el dispositivo/navegador, la reutiliza.</summary>
     public async Task<bool> TryAutoLoginAsync()
     {
-        if (!IsReady || CurrentUser == null) return false;
+        if (!IsReady) return false;
+        refreshToken = PlayerPrefs.GetString(PrefRefresh, "");
+        if (string.IsNullOrEmpty(refreshToken)) return false;
+        CurrentUser = new FirebaseUserInfo
+        {
+            UserId = PlayerPrefs.GetString(PrefUid, ""),
+            Email = PlayerPrefs.GetString(PrefEmail, ""),
+            DisplayName = PlayerPrefs.GetString(PrefName, "")
+        };
         try
         {
+            if (!await RefreshTokenAsync()) { ClearSession(); return false; }
             await LoadProgressAsync();
             return true;
         }
         catch (Exception e)
         {
             Debug.LogWarning("Auto-login falló: " + e.Message);
+            ClearSession();
             return false;
         }
     }
 
     public void Logout()
     {
-        if (auth != null) auth.SignOut();
+        ClearSession();
         Progress = null;
         SceneManager.LoadScene(loginScene);
+    }
+
+    private void ReadAuthResponse(string json, string displayName)
+    {
+        var d = SugaruJson.Parse(json) as Dictionary<string, object>;
+        if (d == null) throw new Exception("Respuesta inválida de Firebase.");
+        idToken = Str(d, "idToken");
+        refreshToken = Str(d, "refreshToken");
+        if (!int.TryParse(Str(d, "expiresIn"), out int expires)) expires = 3600;
+        tokenExpiresAt = Time.realtimeSinceStartup + Mathf.Max(60, expires - 120);
+        CurrentUser = new FirebaseUserInfo
+        {
+            UserId = Str(d, "localId"),
+            Email = Str(d, "email"),
+            DisplayName = displayName ?? Str(d, "displayName")
+        };
+        SaveSession();
+    }
+
+    private async Task<bool> RefreshTokenAsync()
+    {
+        if (string.IsNullOrEmpty(refreshToken)) return false;
+        string form = "grant_type=refresh_token&refresh_token=" + FirebaseRest.Escape(refreshToken);
+        FirebaseRest.Response r = await FirebaseRest.Send("POST", TokenUrl + apiKey, form, "application/x-www-form-urlencoded");
+        if (!r.Ok) return false;
+        var d = SugaruJson.Parse(r.text) as Dictionary<string, object>;
+        if (d == null) return false;
+        idToken = Str(d, "id_token");
+        refreshToken = Str(d, "refresh_token");
+        if (!int.TryParse(Str(d, "expires_in"), out int expires)) expires = 3600;
+        tokenExpiresAt = Time.realtimeSinceStartup + Mathf.Max(60, expires - 120);
+        string uid = Str(d, "user_id");
+        if (CurrentUser == null) CurrentUser = new FirebaseUserInfo();
+        if (!string.IsNullOrEmpty(uid)) CurrentUser.UserId = uid;
+        SaveSession();
+        return !string.IsNullOrEmpty(idToken);
+    }
+
+    /// <summary>Token válido para la base de datos (lo renueva si ya va a vencer).</summary>
+    private async Task<string> TokenAsync()
+    {
+        if (string.IsNullOrEmpty(idToken) || Time.realtimeSinceStartup > tokenExpiresAt)
+        {
+            if (!await RefreshTokenAsync()) throw new Exception("La sesión expiró. Vuelve a iniciar sesión.");
+        }
+        return idToken;
+    }
+
+    private void SaveSession()
+    {
+        PlayerPrefs.SetString(PrefRefresh, refreshToken ?? "");
+        if (CurrentUser != null)
+        {
+            PlayerPrefs.SetString(PrefUid, CurrentUser.UserId ?? "");
+            PlayerPrefs.SetString(PrefEmail, CurrentUser.Email ?? "");
+            PlayerPrefs.SetString(PrefName, CurrentUser.DisplayName ?? "");
+        }
+        PlayerPrefs.Save();
+    }
+
+    private void ClearSession()
+    {
+        idToken = null;
+        refreshToken = null;
+        CurrentUser = null;
+        PlayerPrefs.DeleteKey(PrefRefresh);
+        PlayerPrefs.DeleteKey(PrefUid);
+        PlayerPrefs.DeleteKey(PrefEmail);
+        PlayerPrefs.DeleteKey(PrefName);
+        PlayerPrefs.Save();
     }
 
     // =====================================================================
@@ -148,20 +232,23 @@ public class FirebaseManager : MonoBehaviour
     public async Task LoadProgressAsync()
     {
         if (CurrentUser == null) throw new Exception("No hay usuario autenticado.");
-
         string uid = CurrentUser.UserId;
-        DataSnapshot snap = await db.Child("players").Child(uid).GetValueAsync();
+        string token = await TokenAsync();
 
-        if (snap.Exists)
+        FirebaseRest.Response r = await FirebaseRest.Send("GET", $"{dbUrl}/players/{uid}.json?auth={token}");
+        if (!r.Ok) throw new Exception(DbError(r));
+
+        if (SugaruJson.Parse(r.text) is Dictionary<string, object> data)
         {
-            Progress = PlayerProgress.FromSnapshot(snap, CurrentUser.Email);
+            Progress = PlayerProgress.FromDictionary(data, CurrentUser.Email);
+            if (string.IsNullOrEmpty(CurrentUser.DisplayName)) CurrentUser.DisplayName = Progress.username;
         }
         else
         {
             // La cuenta existe en Auth pero no tiene datos (p. ej. se borró la BD): se crea de nuevo
             string name = !string.IsNullOrEmpty(CurrentUser.DisplayName)
                 ? CurrentUser.DisplayName
-                : CurrentUser.Email.Split('@')[0];
+                : (CurrentUser.Email ?? "jugador").Split('@')[0];
             Progress = PlayerProgress.CreateNew(name, CurrentUser.Email);
             await SaveProgressAsync();
         }
@@ -170,20 +257,21 @@ public class FirebaseManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Guarda en UNA sola escritura atómica el nodo privado (players/uid)
+    /// Guarda en UNA sola escritura atómica (PATCH multi-ruta) el nodo privado (players/uid)
     /// y el nodo público del ranking (ranking/uid).
     /// </summary>
     public async Task SaveProgressAsync()
     {
         if (CurrentUser == null || Progress == null) return;
-
         string uid = CurrentUser.UserId;
+        string token = await TokenAsync();
         var updates = new Dictionary<string, object>
         {
             { "players/" + uid, Progress.ToPlayerDictionary() },
             { "ranking/" + uid, Progress.ToRankingDictionary() }
         };
-        await db.UpdateChildrenAsync(updates);
+        FirebaseRest.Response r = await FirebaseRest.Send("PATCH", $"{dbUrl}/.json?auth={token}", SugaruJson.Serialize(updates));
+        if (!r.Ok) throw new Exception(DbError(r));
         Debug.Log("Progreso guardado en Firebase.");
     }
 
@@ -242,25 +330,29 @@ public class FirebaseManager : MonoBehaviour
     public async Task<List<RankingEntry>> GetRankingAsync(int limit = 20)
     {
         var list = new List<RankingEntry>();
-        if (!IsReady) return list;
+        if (!IsReady || CurrentUser == null) return list;
+        string token = await TokenAsync();
 
-        // Firebase ordena ascendente; LimitToLast trae los N con más puntos
-        DataSnapshot snap = await db.Child("ranking")
-                                    .OrderByChild("totalScore")
-                                    .LimitToLast(limit)
-                                    .GetValueAsync();
+        // Firebase ordena ascendente; limitToLast trae los N con más puntos
+        string orderBy = FirebaseRest.Escape("\"totalScore\"");
+        string url = dbUrl + "/ranking.json?orderBy=" + orderBy + "&limitToLast=" + limit + "&auth=" + token;
+        FirebaseRest.Response r = await FirebaseRest.Send("GET", url);
+        if (!r.Ok) throw new Exception(DbError(r));
 
-        foreach (DataSnapshot child in snap.Children)
+        if (SugaruJson.Parse(r.text) is Dictionary<string, object> all)
         {
-            list.Add(new RankingEntry
+            foreach (var kv in all)
             {
-                uid = child.Key,
-                username = PlayerProgress.GetString(child, "username", "???"),
-                totalScore = PlayerProgress.GetInt(child, "totalScore", 0),
-                maxUnlockedLevel = PlayerProgress.GetInt(child, "maxUnlockedLevel", 1)
-            });
+                if (!(kv.Value is Dictionary<string, object> row)) continue;
+                list.Add(new RankingEntry
+                {
+                    uid = kv.Key,
+                    username = PlayerProgress.GetString(row, "username", "???"),
+                    totalScore = PlayerProgress.GetInt(row, "totalScore", 0),
+                    maxUnlockedLevel = PlayerProgress.GetInt(row, "maxUnlockedLevel", 1)
+                });
+            }
         }
-
         list.Sort((a, b) => b.totalScore.CompareTo(a.totalScore));
         return list;
     }
@@ -286,25 +378,31 @@ public class FirebaseManager : MonoBehaviour
     //  ERRORES EN ESPAÑOL
     // =====================================================================
 
-    private static string TranslateError(Exception e)
+    private static string TranslateError(FirebaseRest.Response r)
     {
-        Exception baseEx = e.GetBaseException();
-        if (baseEx is FirebaseException fe)
-        {
-            switch ((AuthError)fe.ErrorCode)
-            {
-                case AuthError.EmailAlreadyInUse: return "Ese correo ya está registrado.";
-                case AuthError.WeakPassword: return "La contraseña debe tener mínimo 6 caracteres.";
-                case AuthError.InvalidEmail: return "El correo no es válido.";
-                case AuthError.MissingEmail: return "Escribe tu correo.";
-                case AuthError.MissingPassword: return "Escribe tu contraseña.";
-                case AuthError.WrongPassword:
-                case AuthError.UserNotFound: return "Correo o contraseña incorrectos.";
-                case AuthError.NetworkRequestFailed: return "Sin conexión a internet.";
-                case AuthError.TooManyRequests: return "Demasiados intentos. Espera un momento.";
-            }
-            return "Error: " + fe.Message;
-        }
-        return "Error: " + baseEx.Message;
+        if (r.networkError) return "Sin conexión a internet.";
+        string code = FirebaseRest.AuthErrorCode(r);
+        if (code.StartsWith("EMAIL_EXISTS")) return "Ese correo ya está registrado.";
+        if (code.StartsWith("WEAK_PASSWORD")) return "La contraseña debe tener mínimo 6 caracteres.";
+        if (code.StartsWith("INVALID_EMAIL")) return "El correo no es válido.";
+        if (code.StartsWith("MISSING_EMAIL")) return "Escribe tu correo.";
+        if (code.StartsWith("MISSING_PASSWORD")) return "Escribe tu contraseña.";
+        if (code.StartsWith("INVALID_LOGIN_CREDENTIALS") || code.StartsWith("EMAIL_NOT_FOUND") || code.StartsWith("INVALID_PASSWORD"))
+            return "Correo o contraseña incorrectos.";
+        if (code.StartsWith("USER_DISABLED")) return "Esta cuenta está deshabilitada.";
+        if (code.StartsWith("TOO_MANY_ATTEMPTS")) return "Demasiados intentos. Espera un momento.";
+        if (code.StartsWith("OPERATION_NOT_ALLOWED")) return "Activa 'Correo/contraseña' en Firebase → Authentication.";
+        if (code.Contains("API key not valid") || code.StartsWith("API_KEY")) return "La clave de Firebase no es válida (revisa FirebaseConfig).";
+        return "Error: " + code;
     }
+
+    private static string DbError(FirebaseRest.Response r)
+    {
+        if (r.networkError) return "Sin conexión a internet.";
+        if (r.code == 401 || r.code == 403) return "Permiso denegado en la base de datos (revisa las reglas).";
+        return "Error de la base de datos (" + r.code + "): " + r.text;
+    }
+
+    private static string Str(Dictionary<string, object> d, string key)
+        => d != null && d.TryGetValue(key, out object v) && v != null ? v.ToString() : "";
 }

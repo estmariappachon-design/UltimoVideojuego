@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Firebase.Database;
 
 /// <summary>
 /// Estados posibles de un nivel (tal como pide el enunciado).
@@ -131,7 +130,7 @@ public class PlayerProgress
 
     // ---------- Conversión desde Firebase ----------
 
-    public static PlayerProgress FromSnapshot(DataSnapshot s, string fallbackEmail)
+    public static PlayerProgress FromDictionary(Dictionary<string, object> s, string fallbackEmail)
     {
         var p = CreateNew(GetString(s, "username", "jugador"), GetString(s, "email", fallbackEmail));
 
@@ -140,16 +139,17 @@ public class PlayerProgress
         p.lastCompletedLevel = GetInt(s, "lastCompletedLevel", 0);
         p.maxUnlockedLevel = Math.Max(1, GetInt(s, "maxUnlockedLevel", 1));
 
-        DataSnapshot levelsSnap = s.Child("levels");
-        for (int i = 0; i < TotalLevels; i++)
+        Dictionary<string, object> levelsDict = s.TryGetValue("levels", out object lv) ? lv as Dictionary<string, object> : null;
+        if (levelsDict != null)
         {
-            DataSnapshot ls = levelsSnap.Child(LevelKey(i + 1));
-            if (!ls.Exists) continue;
-
-            p.levels[i].state = GetString(ls, "state", p.levels[i].state);
-            p.levels[i].bestScore = GetInt(ls, "bestScore", 0);
-            p.levels[i].timesPlayed = GetInt(ls, "timesPlayed", 0);
-            p.levels[i].stars = GetInt(ls, "stars", 0);
+            for (int i = 0; i < TotalLevels; i++)
+            {
+                if (!levelsDict.TryGetValue(LevelKey(i + 1), out object lo) || !(lo is Dictionary<string, object> ls)) continue;
+                p.levels[i].state = GetString(ls, "state", p.levels[i].state);
+                p.levels[i].bestScore = GetInt(ls, "bestScore", 0);
+                p.levels[i].timesPlayed = GetInt(ls, "timesPlayed", 0);
+                p.levels[i].stars = GetInt(ls, "stars", 0);
+            }
         }
 
         // Coherencia: todo nivel <= maxUnlockedLevel debe estar al menos desbloqueado
@@ -161,17 +161,15 @@ public class PlayerProgress
         return p;
     }
 
-    public static int GetInt(DataSnapshot s, string key, int defaultValue)
+    public static int GetInt(Dictionary<string, object> s, string key, int defaultValue)
     {
-        DataSnapshot c = s.Child(key);
-        if (!c.Exists || c.Value == null) return defaultValue;
-        try { return Convert.ToInt32(c.Value); }   // Firebase devuelve los números como long
+        if (s == null || !s.TryGetValue(key, out object v) || v == null) return defaultValue;
+        try { return Convert.ToInt32(v); }   // los números llegan como long o double
         catch { return defaultValue; }
     }
 
-    public static string GetString(DataSnapshot s, string key, string defaultValue)
+    public static string GetString(Dictionary<string, object> s, string key, string defaultValue)
     {
-        DataSnapshot c = s.Child(key);
-        return (c.Exists && c.Value != null) ? c.Value.ToString() : defaultValue;
+        return s != null && s.TryGetValue(key, out object v) && v != null ? v.ToString() : defaultValue;
     }
 }

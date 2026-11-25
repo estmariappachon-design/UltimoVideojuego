@@ -123,6 +123,7 @@ public static class CakeBuilder
         EnsureFolder("Assets", "MisImagenes");
         EnsureFolder("Assets", "Fuentes");
         SpriteImageImporter.ConfigureAll();
+        FirebaseConfigTool.Configure(out bool _);   // Firebase por API REST (WebGL, Android y editor)
         BuildTheme();
         BuildCatalog();
         BuildPrefabs();
@@ -1297,14 +1298,12 @@ public static class CakeBuilder
         RectTransform safe = MakeCanvas("Canvas", Spr("UI/fondo_menu.png"), ThemeKey.FondoLogin);
         FallingStrawberries(safe.parent, 22);
 
-        // Logo grande que flota + personajes saludando
+        // Logo que flota (arriba a la izquierda; abajo va el teclado en pantalla)
         Image logo = Themed(NewImage(safe, "Logo", Spr("UI/logo.png"), Color.white), ThemeKey.Logo);
         logo.preserveAspect = true;
         logo.raycastTarget = false;
-        Place(logo.rectTransform, new Vector2(0.3f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 150), new Vector2(900, 520));
-        Float(logo.gameObject, 14f, 1.4f, 0.025f, 1.5f);
-        Character(safe, "Gatito", "Clientes/gatito_feliz.png", new Vector2(0.17f, 0f), new Vector2(0, 30), 330, 0.2f);
-        Character(safe, "Perrito", "Clientes/perrito_feliz.png", new Vector2(0.43f, 0f), new Vector2(0, 30), 330, 1.1f);
+        PlaceLoginLogo(logo.rectTransform);
+        Float(logo.gameObject, 10f, 1.4f, 0.02f, 1.2f);
 
         // Tarjeta del login con la conejita asomada
         RectTransform card = Card(safe, "PanelLogin", new Vector2(0.73f, 0.5f), new Vector2(0, -50), new Vector2(780, 880));
@@ -1323,6 +1322,8 @@ public static class CakeBuilder
         Button login = NewButton(row, "LoginButton", "Entrar", 44, true);
         TextMeshProUGUI message = Label(form, "MessageText", "", 30, TextAlignmentOptions.Center, Brown);
         Height(message, 100);
+
+        BuildKeyboard(safe, new[] { user, email, pass });
 
         LoginUI ui = new GameObject("LoginUI").AddComponent<LoginUI>();
         ui.usernameInput = user;
@@ -1705,6 +1706,65 @@ public static class CakeBuilder
     // =====================================================================
     //  AYUDANTES: UI
     // =====================================================================
+
+    // ---------------------------------------------------------------- teclado en pantalla (login)
+    private static void PlaceLoginLogo(RectTransform logo)
+    {
+        Place(logo, new Vector2(0.3f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -6), new Vector2(760, 280));
+    }
+
+    /// <summary>Teclado Sugaru al lado izquierdo (al otro lado del formulario), con el gatito asomado.</summary>
+    internal static TecladoPantalla BuildKeyboard(RectTransform safe, TMP_InputField[] fields)
+    {
+        RectTransform card = Card(safe, "TecladoPantalla", new Vector2(0.3f, 0.5f), new Vector2(0, -140), new Vector2(880, 560));
+        Peek(card, "PersonajeAsomado", "UI/asomado_gatito_feliz.png", new Vector2(0.14f, 1f), new Vector2(0, -32), 150);
+        RectTransform keys = NewUI("Teclas", card);
+        Stretch(keys, 24, 24, 26, 24);
+        TecladoPantalla kb = card.gameObject.AddComponent<TecladoPantalla>();
+        kb.campos = fields;
+        kb.teclasRoot = keys;
+        kb.teclaSprite = Spr("UI/boton.png");
+        kb.teclaEspecialSprite = Spr("UI/boton_verde.png");
+        kb.colorTexto = ButtonText;
+        kb.tamanoLetra = 40f;
+        kb.espacio = 10f;
+        kb.ocultarTecladoDelCelular = true;
+        kb.Construir();
+        return kb;
+    }
+
+    /// <summary>Agrega el teclado a la LoginScene que ya tienes (sin volver a crear la escena).</summary>
+    [MenuItem("Torre de Pasteles/11. Agregar teclado al login", priority = 11)]
+    public static void AddKeyboardToLoginMenu()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        string path = SC + "LoginScene.unity";
+        if (!File.Exists(path)) { EditorUtility.DisplayDialog("Teclado", "No encontré " + path + ". Usa CREAR TODO.", "OK"); return; }
+        var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+        LoginUI login = Object.FindFirstObjectByType<LoginUI>(FindObjectsInactive.Include);
+        if (login == null || login.emailInput == null) { EditorUtility.DisplayDialog("Teclado", "La escena no tiene LoginUI con sus campos.", "OK"); return; }
+
+        Canvas canvas = login.emailInput.GetComponentInParent<Canvas>(true).rootCanvas;
+        Transform safeT = canvas.transform.Find("SafeArea");
+        RectTransform safe = safeT != null ? (RectTransform)safeT : (RectTransform)canvas.transform;
+
+        Transform old = safe.Find("TecladoPantalla");
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+        foreach (string n in new[] { "Gatito", "Perrito" })   // los personajes de abajo ocupaban ese espacio
+        {
+            Transform c = safe.Find(n);
+            if (c != null) c.gameObject.SetActive(false);
+        }
+        Transform logo = safe.Find("Logo");
+        if (logo != null) PlaceLoginLogo((RectTransform)logo);
+
+        BuildKeyboard(safe, new[] { login.usernameInput, login.emailInput, login.passwordInput });
+        scene = EditorSceneManager.GetActiveScene();
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        FontTool.ApplyIfAvailable();   // tu tipografía también en las teclas (después de guardar)
+        EditorUtility.DisplayDialog("Teclado", "Listo: el teclado quedó al lado izquierdo del login.\n\nMuévelo o cámbiale el tamaño en LoginScene → Canvas → SafeArea → TecladoPantalla.", "OK");
+    }
 
     // ---------------------------------------------------------------- barras (estilo Sugaru)
     private static Image BarBack(Transform parent)
