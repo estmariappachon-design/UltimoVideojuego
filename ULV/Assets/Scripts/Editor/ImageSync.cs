@@ -326,7 +326,7 @@ public static class ImageSync
                 return n.StartsWith("fondo_nivel_") || cat.levels.Any(l => l != null && l.background == s);
             case CatalogImageNote.Source.Cliente:
                 return cat.customers.Any(c => c != null && (c.normal == s || c.happy == s || c.angry == s))
-                       || n.EndsWith("_normal") && new[] { "conejita", "gatito", "osito", "pollito", "pinguina" }.Any(a => n.StartsWith(a));
+                       || n.EndsWith("_normal") && new[] { "conejita", "gatito", "osito", "pollito", "pinguina", "panda", "perrito" }.Any(a => n.StartsWith(a));
             case CatalogImageNote.Source.SaborDePastel:
                 return cat.flavors.Any(f => f != null && f.layerSprite == s) || n == "capa_quemada";
             default:

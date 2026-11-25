@@ -19,6 +19,10 @@ public class GameHud : MonoBehaviour
 
     [Header("RETO (siempre visible arriba)")]
     public GameObject challengeBanner;
+    [Tooltip("true = el reto aparece solo cuando se necesita (al empezar cada pedido) y luego se esconde. false = siempre visible")]
+    public bool challengeAutoHide = false;
+    [Tooltip("Segundos que se queda visible el reto antes de esconderse")]
+    public float challengeShowSeconds = 5f;
     public TMP_Text levelChallengeText;
     public TMP_Text orderChallengeText;
 
@@ -132,13 +136,66 @@ public class GameHud : MonoBehaviour
 
     public void SetChallenge(string levelChallenge, string orderChallenge)
     {
-        if (challengeBanner != null) challengeBanner.SetActive(!string.IsNullOrEmpty(levelChallenge) || !string.IsNullOrEmpty(orderChallenge));
+        hasChallenge = !string.IsNullOrEmpty(levelChallenge) || !string.IsNullOrEmpty(orderChallenge);
+        if (challengeBanner != null)
+        {
+            if (!challengeAutoHide) challengeBanner.SetActive(hasChallenge);
+            else if (challengeRoutine == null) challengeBanner.SetActive(false);   // se muestra con ShowChallenge()
+        }
         if (levelChallengeText != null) levelChallengeText.text = levelChallenge;
         if (orderChallengeText != null)
         {
             orderChallengeText.gameObject.SetActive(!string.IsNullOrEmpty(orderChallenge));
             orderChallengeText.text = orderChallenge;
         }
+    }
+
+    private bool hasChallenge;
+    private Coroutine challengeRoutine;
+    private Vector2 challengeHome;
+    private bool challengeHomeSet;
+
+    /// <summary>Muestra el reto: baja desde arriba, se queda unos segundos y se vuelve a esconder.</summary>
+    public void ShowChallenge()
+    {
+        if (challengeBanner == null || !hasChallenge) return;
+        if (!challengeAutoHide) { challengeBanner.SetActive(true); return; }
+        if (challengeRoutine != null) StopCoroutine(challengeRoutine);
+        challengeRoutine = StartCoroutine(ChallengeRoutine());
+    }
+
+    public void HideChallenge()
+    {
+        if (!challengeAutoHide || challengeBanner == null) return;
+        if (challengeRoutine != null) StopCoroutine(challengeRoutine);
+        challengeRoutine = null;
+        challengeBanner.SetActive(false);
+        RectTransform rt = challengeBanner.transform as RectTransform;
+        if (rt != null && challengeHomeSet) rt.anchoredPosition = challengeHome;
+    }
+
+    private IEnumerator ChallengeRoutine()
+    {
+        RectTransform rt = challengeBanner.transform as RectTransform;
+        if (rt != null && !challengeHomeSet) { challengeHome = rt.anchoredPosition; challengeHomeSet = true; }
+        challengeBanner.SetActive(true);
+        Vector2 hidden = challengeHome + new Vector2(0f, 260f);
+        for (float t = 0f; t < 0.35f; t += Time.deltaTime)
+        {
+            float k = Mathf.SmoothStep(0f, 1f, t / 0.35f);
+            if (rt != null) rt.anchoredPosition = Vector2.Lerp(hidden, challengeHome, k) + Vector2.down * Mathf.Sin(k * Mathf.PI) * 14f;
+            yield return null;
+        }
+        if (rt != null) rt.anchoredPosition = challengeHome;
+        yield return new WaitForSeconds(Mathf.Max(0.5f, challengeShowSeconds));
+        for (float t = 0f; t < 0.35f; t += Time.deltaTime)
+        {
+            if (rt != null) rt.anchoredPosition = Vector2.Lerp(challengeHome, hidden, Mathf.SmoothStep(0f, 1f, t / 0.35f));
+            yield return null;
+        }
+        challengeBanner.SetActive(false);
+        if (rt != null) rt.anchoredPosition = challengeHome;
+        challengeRoutine = null;
     }
 
     public void SetWind(float wind, float max)

@@ -57,6 +57,12 @@ public class SpriteImageImporter : AssetPostprocessor
 
         if (file.StartsWith("capa_")) { importer.spriteBorder = new Vector4(70, 0, 70, 0); return; }
         if (file.StartsWith("cinta")) { importer.spriteBorder = new Vector4(130, 0, 130, 0); return; }
+        if (file.StartsWith("barra_perilla")) return;
+        if (file.StartsWith("barra")) { importer.spriteBorder = new Vector4(30, 30, 30, 30); return; }
+        // Estilo Sugaru: botones tipo píldora y paneles muy redondeados (bordes más grandes)
+        if (file.StartsWith("boton")) { importer.spriteBorder = new Vector4(66, 66, 66, 66); return; }
+        if (file.StartsWith("panel") || file.StartsWith("burbuja_dialogo")) { importer.spriteBorder = new Vector4(66, 66, 66, 66); return; }
+        if (file.StartsWith("input") || file.StartsWith("ticket")) { importer.spriteBorder = new Vector4(50, 50, 50, 50); return; }
         foreach (string n in SlicedNames)
         {
             if (file.StartsWith(n))

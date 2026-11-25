@@ -248,3 +248,4 @@ MonoBehaviour:
   faceMinWidth: 0.8
   scaredFace: {fileID: 21300000, guid: 4e1cbdfb29eb56a4d9022dde61db9329, type: 3}
   dirtyColor: {r: 0.72, g: 0.82, b: 0.55, a: 1}
+  wrongColor: {r: 1, g: 0.45, b: 0.45, a: 1}

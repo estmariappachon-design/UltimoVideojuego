@@ -41,31 +41,26 @@ MonoBehaviour:
   burntLayerSprite: {fileID: 21300000, guid: 014fa044a7d951a45aba523746ac517f, type: 3}
   burntFaceSprite: {fileID: 21300000, guid: 8aa760ac02fd25640b7a7241abd9292e, type: 3}
   customers:
+  - name: Gatito
+    normal: {fileID: 21300000, guid: 8de1e1e909d140346a3a9baa88304400, type: 3}
+    happy: {fileID: 21300000, guid: 5a3677ab55938874c8c6a4fe133aaf27, type: 3}
+    angry: {fileID: 21300000, guid: 00e3b8fba5f5dbd47ab6f9bcb3159849, type: 3}
+    greeting: "Miau~ \xA1quiero un pastel de fresas bien alto!"
   - name: Conejita
     normal: {fileID: 21300000, guid: dd7687330750d2b4b80b305e915a9eb9, type: 3}
     happy: {fileID: 21300000, guid: 596d0e52b0a44ef4f8f4395aa2fd0b60, type: 3}
     angry: {fileID: 21300000, guid: 589f805bb10da5a43a6f69e66bd5ce14, type: 3}
     greeting: "\xA1Hola! Es el cumplea\xF1os de mi abuelita, \xBFme ayudas?"
-  - name: Gatito
-    normal: {fileID: 21300000, guid: 8de1e1e909d140346a3a9baa88304400, type: 3}
-    happy: {fileID: 21300000, guid: 5a3677ab55938874c8c6a4fe133aaf27, type: 3}
-    angry: {fileID: 21300000, guid: 00e3b8fba5f5dbd47ab6f9bcb3159849, type: 3}
-    greeting: "Miau~ quiero un pastel bien alto, \xA1por favor!"
-  - name: Osito
-    normal: {fileID: 21300000, guid: 2caa26602bf9daf4582fdd51e50f1880, type: 3}
-    happy: {fileID: 21300000, guid: d2ccbcbb91006a546babdacc9b8889c4, type: 3}
-    angry: {fileID: 21300000, guid: bc90a1da1ea07854d9c964b6086836ae, type: 3}
+  - name: Pandita
+    normal: {fileID: 21300000, guid: d375f4407359ddd4289b4f32d57bb79a, type: 3}
+    happy: {fileID: 21300000, guid: fc8c98c8d1f55974296e0d14993a2d17, type: 3}
+    angry: {fileID: 21300000, guid: 7e3524fd15573c44d940a4325db3686c, type: 3}
     greeting: "Tengo mucha hambre... \xA1ese pastel se ve delicioso!"
-  - name: Pollito
-    normal: {fileID: 21300000, guid: 7780600e2ffeeaf478de4fe1e253b566, type: 3}
-    happy: {fileID: 21300000, guid: 576cc7b2c7cee41478b1090ea5ae056c, type: 3}
-    angry: {fileID: 21300000, guid: f70a441dd61bf484e88d1dc8e6de475f, type: 3}
-    greeting: "\xA1P\xEDo p\xEDo! Es para una fiesta sorpresa."
-  - name: "Ping\xFCina"
-    normal: {fileID: 21300000, guid: 2e3574684cb889b47b698df1d9144775, type: 3}
-    happy: {fileID: 21300000, guid: aa52a9ff8d6fce24e97901f3c9295946, type: 3}
-    angry: {fileID: 21300000, guid: 0293ae1c877a5db44a0a041a039f0460, type: 3}
-    greeting: "\xA1Hace fr\xEDo! Un pastelito me pondr\xE1 feliz."
+  - name: Perrito
+    normal: {fileID: 21300000, guid: 8337d785d6a85cc4e8ce0b40a4538ae6, type: 3}
+    happy: {fileID: 21300000, guid: b328c33134889b147b65efc07b22fced, type: 3}
+    angry: {fileID: 21300000, guid: b310d7f2a79c35f47a91b9d51d8e24de, type: 3}
+    greeting: "\xA1Guau! Es para una fiesta sorpresa, \xA1shhh!"
   levels:
   - title: "Pasteler\xEDa Rosa"
     description: "\xA1Aprende a apilar!"

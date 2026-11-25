@@ -35,19 +35,24 @@ public static class CakeBuilder
     private static readonly Color Dim = new Color(0.35f, 0.18f, 0.28f, 0.6f);
     private static readonly Color SkyPink = new Color(1f, 0.88f, 0.92f);
     private static readonly Color MessagePink = new Color(0.86f, 0.33f, 0.52f);
+    private static readonly Color ButtonText = new Color(0.85f, 0.34f, 0.52f);
 
     private static readonly string[] FlavorFiles = { "fresa", "chocolate", "vainilla", "menta", "arandano", "limon", "algodon", "naranja" };
     private static readonly string[] FlavorNames = { "Fresa", "Chocolate", "Vainilla", "Menta", "Arándano", "Limón", "Algodón", "Naranja" };
-    private static readonly string[] CustomerFiles = { "conejita", "gatito", "osito", "pollito", "pinguina" };
-    private static readonly string[] CustomerNames = { "Conejita", "Gatito", "Osito", "Pollito", "Pingüina" };
+    private static readonly string[] CustomerFiles = { "gatito", "conejita", "panda", "perrito" };
+    private static readonly string[] CustomerNames = { "Gatito", "Conejita", "Pandita", "Perrito" };
     private static readonly string[] CustomerGreetings =
     {
+        "Miau~ ¡quiero un pastel de fresas bien alto!",
         "¡Hola! Es el cumpleaños de mi abuelita, ¿me ayudas?",
-        "Miau~ quiero un pastel bien alto, ¡por favor!",
         "Tengo mucha hambre... ¡ese pastel se ve delicioso!",
-        "¡Pío pío! Es para una fiesta sorpresa.",
-        "¡Hace frío! Un pastelito me pondrá feliz."
+        "¡Guau! Es para una fiesta sorpresa, ¡shhh!"
     };
+    // Imágenes de animales que traía el juego (se reemplazan por los personajes Sugaru)
+    private static readonly string[] BuiltInCustomerPrefixes = { "conejita_", "gatito_", "osito_", "pollito_", "pinguina_", "panda_", "perrito_" };
+
+    /// <summary>true = "todo con el estilo Sugaru": reemplaza también las imágenes que habías puesto en TemaVisual y LevelCatalog.</summary>
+    private static bool resetStyle;
     private static readonly string[] Titles =
     {
         "Pastelería Rosa", "Café Menta", "Horno Travieso", "El Ventilador", "Picnic con Moscas",
@@ -109,6 +114,12 @@ public static class CakeBuilder
                 "(LoginScene, MainMenu, GameScene). Las escenas y prefabs se REEMPLAZAN; " +
                 "las imágenes que hayas puesto en TemaVisual y LevelCatalog se respetan.\n¿Continuar?", "Sí, crear todo", "Cancelar")) return;
 
+        resetStyle = EditorUtility.DisplayDialog("Estilo Sugaru",
+            "¿Quieres que TODO el juego quede con el estilo Sugaru (logo, fondos, personajes, botones, paneles)?\n\n" +
+            "• Sí: reemplaza también las imágenes que habías puesto antes en TemaVisual y LevelCatalog.\n" +
+            "• No: se conservan tus imágenes y solo se usa Sugaru donde no pusiste nada.",
+            "Sí, todo Sugaru", "No, conservar mis imágenes");
+
         EnsureFolder("Assets", "MisImagenes");
         EnsureFolder("Assets", "Fuentes");
         SpriteImageImporter.ConfigureAll();
@@ -117,8 +128,9 @@ public static class CakeBuilder
         BuildPrefabs();
         BuildScenes();
         FontTool.ApplyIfAvailable();
+        resetStyle = false;
         EditorSceneManager.OpenScene(SC + "LoginScene.unity");
-        EditorUtility.DisplayDialog("Torre de Pasteles",
+        EditorUtility.DisplayDialog("Sugaru",
             "¡Listo!\n\nAbre Assets/Scenes/LoginScene y dale Play.\n\n" +
             "Para probar un nivel sin login abre GameScene, elige 'Test Level' en el objeto StackGame y dale Play.\n\n" +
             "Tus imágenes: Assets/Resources/TemaVisual y LevelCatalog.\nTu fuente: ponla en Assets/Fuentes y usa el menú 5.", "OK");
@@ -149,6 +161,7 @@ public static class CakeBuilder
         PlayerSettings.allowedAutorotateToLandscapeRight = true;
         PlayerSettings.allowedAutorotateToPortrait = false;
         PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+        PlayerSettings.productName = "Sugaru";
 
         EditorSceneManager.OpenScene(SC + "LoginScene.unity");
         Debug.Log("Torre de Pasteles: escenas creadas y agregadas a Build Settings.");
@@ -191,7 +204,14 @@ public static class CakeBuilder
         {
             SerializedProperty p = so.FindProperty(ThemeFiles[i, 0]);
             if (p == null) { Debug.LogWarning("TemaVisual: no existe la casilla " + ThemeFiles[i, 0]); continue; }
-            if (p.objectReferenceValue == null) p.objectReferenceValue = Spr(ThemeFiles[i, 1]);   // solo si está vacía
+            if (p.objectReferenceValue == null || resetStyle) p.objectReferenceValue = Spr(ThemeFiles[i, 1]);   // solo si está vacía (o si pediste todo Sugaru)
+        }
+        if (resetStyle)
+        {
+            SerializedProperty fl = so.FindProperty("fondoLogin");      // vacío = usa el fondo del menú
+            if (fl != null) fl.objectReferenceValue = null;
+            SerializedProperty ic = so.FindProperty("iconoCorazon");
+            if (ic != null) ic.objectReferenceValue = null;
         }
         SerializedProperty flies = so.FindProperty("mosca");
         if (flies != null && flies.arraySize == 0)
@@ -232,7 +252,7 @@ public static class CakeBuilder
         for (int i = 0; i < fCount; i++)
         {
             var old = oldFlavors != null && i < oldFlavors.Length ? oldFlavors[i] : null;
-            if (old != null && old.layerSprite != null) { c.flavors[i] = old; continue; }
+            if (old != null && old.layerSprite != null && !resetStyle) { c.flavors[i] = old; continue; }
             c.flavors[i] = new LevelCatalog.Flavor
             {
                 name = i < FlavorNames.Length ? FlavorNames[i] : (old != null ? old.name : "Sabor"),
@@ -241,27 +261,28 @@ public static class CakeBuilder
             };
         }
 
-        // Clientes (animales)
+        // Clientes: los 4 personajes Sugaru + los animales que TÚ hayas agregado con tus imágenes
         var oldCustomers = c.customers;
-        int cCount = Mathf.Max(CustomerFiles.Length, oldCustomers != null ? oldCustomers.Length : 0);
-        c.customers = new LevelCatalog.Customer[cCount];
-        for (int i = 0; i < cCount; i++)
+        var customers = new System.Collections.Generic.List<LevelCatalog.Customer>();
+        for (int i = 0; i < CustomerFiles.Length; i++)
         {
-            var old = oldCustomers != null && i < oldCustomers.Length ? oldCustomers[i] : null;
-            var cu = old ?? new LevelCatalog.Customer();
-            if (i < CustomerFiles.Length)
+            customers.Add(new LevelCatalog.Customer
             {
-                if (old == null) cu.name = CustomerNames[i];
-                if (cu.normal == null) cu.normal = Spr("Clientes/" + CustomerFiles[i] + "_normal.png");
-                if (cu.happy == null) cu.happy = Spr("Clientes/" + CustomerFiles[i] + "_feliz.png");
-                if (cu.angry == null) cu.angry = Spr("Clientes/" + CustomerFiles[i] + "_enojado.png");
-                if (string.IsNullOrEmpty(cu.greeting) || cu.greeting == "¡Hola! ¿Me preparas este pastel?") cu.greeting = CustomerGreetings[i];
-            }
-            c.customers[i] = cu;
+                name = CustomerNames[i],
+                normal = Spr("Clientes/" + CustomerFiles[i] + "_normal.png"),
+                happy = Spr("Clientes/" + CustomerFiles[i] + "_feliz.png"),
+                angry = Spr("Clientes/" + CustomerFiles[i] + "_enojado.png"),
+                greeting = CustomerGreetings[i]
+            });
         }
+        if (oldCustomers != null && !resetStyle)
+            foreach (var old in oldCustomers)
+                if (old != null && old.normal != null && !BuiltInCustomerPrefixes.Any(px => old.normal.name.ToLowerInvariant().StartsWith(px)))
+                    customers.Add(old);   // animal tuyo: se conserva
+        c.customers = customers.ToArray();
 
-        if (c.burntLayerSprite == null) c.burntLayerSprite = Spr("Sabores/capa_quemada.png");
-        if (c.burntFaceSprite == null) c.burntFaceSprite = Spr("Sabores/cara_quemada.png");
+        if (c.burntLayerSprite == null || resetStyle) c.burntLayerSprite = Spr("Sabores/capa_quemada.png");
+        if (c.burntFaceSprite == null || resetStyle) c.burntFaceSprite = Spr("Sabores/cara_quemada.png");
 
         // Niveles: dificultad y retos por defecto; se respetan fondo, miniatura, música y título que hayas cambiado
         var oldLevels = c.levels;
@@ -270,10 +291,10 @@ public static class CakeBuilder
         {
             var e = Preset(i);
             var old = oldLevels != null && i - 1 < oldLevels.Length ? oldLevels[i - 1] : null;
-            if (old != null)
+            if (old != null && !resetStyle)
             {
-                if (old.background != null) e.background = old.background;
-                if (old.thumbnail != null) e.thumbnail = old.thumbnail;
+                if (old.background != null && !old.background.name.StartsWith("fondo_nivel_")) e.background = old.background;
+                if (old.thumbnail != null && !old.thumbnail.name.StartsWith("miniatura_nivel_")) e.thumbnail = old.thumbnail;
                 if (old.music != null) e.music = old.music;
                 if (!string.IsNullOrEmpty(old.title) && System.Array.IndexOf(OldDefaultTitles, old.title) < 0) e.title = old.title;
             }
@@ -494,7 +515,8 @@ public static class CakeBuilder
         number.fontStyle = FontStyles.Bold;
         number.outlineWidth = 0.25f;
         number.outlineColor = new Color32(200, 90, 130, 255);
-        Place(number.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 18), new Vector2(180, 110));
+        number.fontSize = 60;
+        Place(number.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-4, -34), new Vector2(160, 80));   // sobre la cara de la porción
 
         TextMeshProUGUI title = Label(root, "Titulo", "Nivel", 26, TextAlignmentOptions.Center, Brown);
         title.fontStyle = FontStyles.Bold;
@@ -503,7 +525,7 @@ public static class CakeBuilder
         Image lockIcon = Themed(NewImage(root, "Candado", Spr("UI/candado.png"), Brown), ThemeKey.Candado);
         lockIcon.preserveAspect = true;
         lockIcon.raycastTarget = false;
-        Place(lockIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 14), new Vector2(90, 90));
+        Place(lockIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-4, -30), new Vector2(72, 72));
 
         RectTransform starRow = NewUI("Estrellas", root);
         Place(starRow, new Vector2(0.5f, 1f), new Vector2(0.5f, 0f), new Vector2(0, -16), new Vector2(200, 64));
@@ -526,6 +548,7 @@ public static class CakeBuilder
         ui.stars = stars;
         ui.lockIcon = lockIcon.gameObject;
         ui.glow = glow.rectTransform;
+        ui.lockedTint = Color.white;   // la porción bloqueada ya es gris
         Save(root.gameObject, PFU + "NodoNivel");
     }
 
@@ -770,19 +793,32 @@ public static class CakeBuilder
         hud.pauseButton = IconButton(safe, "PauseButton", ThemeKey.Pausa, "II");
         Place((RectTransform)hud.pauseButton.transform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -20), new Vector2(110, 110));
 
-        RectTransform info = Card(safe, "PanelInfo", new Vector2(0, 1), Vector2.zero, new Vector2(430, 220));
-        info.pivot = new Vector2(0, 1);
-        info.anchoredPosition = new Vector2(150, -16);
-        hud.levelText = Label(info, "LevelText", "Nivel 1", 30, TextAlignmentOptions.TopLeft, Brown);
+        // Etiqueta del nivel debajo del botón de pausa
+        Image levelTag = Themed(NewImage(safe, "EtiquetaNivel", Spr("UI/boton_verde.png"), Pink), ThemeKey.BotonVerde);
+        levelTag.raycastTarget = false;
+        Place(levelTag.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(18, -138), new Vector2(122, 62));
+        hud.levelText = Label(levelTag.rectTransform, "LevelText", "Nivel 1", 26, TextAlignmentOptions.Center, Color.white);
         hud.levelText.fontStyle = FontStyles.Bold;
-        Place(hud.levelText.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(26, -14), new Vector2(220, 44));
-        hud.ordersText = Label(info, "OrdersText", "Pedidos 0/3", 28, TextAlignmentOptions.TopRight, Brown);
-        Place(hud.ordersText.rectTransform, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-24, -16), new Vector2(200, 44));
-        hud.scoreText = Label(info, "ScoreText", "0", 64, TextAlignmentOptions.Left, MessagePink);
+        hud.levelText.enableAutoSizing = true;
+        hud.levelText.fontSizeMin = 14;
+        hud.levelText.fontSizeMax = 26;
+        Stretch(hud.levelText.rectTransform, 8, 8, 4, 10);
+
+        // Pastillas (como en la interfaz Sugaru): puntaje, corazones y pedidos
+        RectTransform scorePill = Pill(safe, "PastillaPuntaje", new Vector2(150, -16), new Vector2(340, 92), "UI/estrella.png", ThemeKey.Estrella);
+        hud.scoreText = Label(scorePill, "ScoreText", "0", 54, TextAlignmentOptions.MidlineLeft, MessagePink);
         hud.scoreText.fontStyle = FontStyles.Bold;
-        Place(hud.scoreText.rectTransform, new Vector2(0, 1), new Vector2(0, 1), new Vector2(26, -56), new Vector2(380, 80));
-        RectTransform heartsRow = NewUI("Corazones", info);
-        Place(heartsRow, new Vector2(0, 0), new Vector2(0, 0), new Vector2(22, 14), new Vector2(390, 58));
+        Stretch(hud.scoreText.rectTransform, 104, 20, 8, 16);
+        RectTransform heartPill = Pill(safe, "PastillaCorazones", new Vector2(150, -114), new Vector2(340, 84), null, ThemeKey.Estrella);
+        RectTransform ordersPill = Pill(safe, "PastillaPedidos", new Vector2(150, -204), new Vector2(340, 84), "UI/fresa.png", ThemeKey.IconoPedido);
+        hud.ordersText = Label(ordersPill, "OrdersText", "Pedidos 0/3", 32, TextAlignmentOptions.MidlineLeft, Brown);
+        hud.ordersText.fontStyle = FontStyles.Bold;
+        hud.ordersText.enableAutoSizing = true;
+        hud.ordersText.fontSizeMin = 18;
+        hud.ordersText.fontSizeMax = 32;
+        Stretch(hud.ordersText.rectTransform, 100, 20, 6, 14);
+        RectTransform heartsRow = NewUI("Corazones", heartPill);
+        Stretch(heartsRow, 24, 20, 8, 16);
         HorizontalLayoutGroup hl = heartsRow.gameObject.AddComponent<HorizontalLayoutGroup>();
         hl.spacing = 6;
         hl.childControlWidth = hl.childControlHeight = false;
@@ -794,14 +830,14 @@ public static class CakeBuilder
             Image h = Themed(NewImage(heartsRow, "Corazon" + (i + 1), Spr("UI/corazon_lleno.png"), new Color(1f, 0.45f, 0.55f)), ThemeKey.CorazonLleno);
             h.raycastTarget = false;
             h.preserveAspect = true;
-            h.rectTransform.sizeDelta = new Vector2(54, 54);
+            h.rectTransform.sizeDelta = new Vector2(50, 50);
             hud.hearts[i] = h;
         }
 
         // ---------- Viento (debajo del panel de info) ----------
         RectTransform windRoot = Card(safe, "Viento", new Vector2(0, 1), Vector2.zero, new Vector2(300, 84));
         windRoot.pivot = new Vector2(0, 1);
-        windRoot.anchoredPosition = new Vector2(150, -248);
+        windRoot.anchoredPosition = new Vector2(150, -300);
         Image windImg = Themed(NewImage(windRoot, "Flecha", Spr("UI/viento.png"), MessagePink), ThemeKey.Viento);
         windImg.preserveAspect = true;
         windImg.raycastTarget = false;
@@ -818,27 +854,30 @@ public static class CakeBuilder
         banner.raycastTarget = false;
         Place(banner.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(100, -8), new Vector2(860, 166));   // entre el panel de info y el ticket
         hud.levelChallengeText = Label(banner.rectTransform, "Texto", "Reto del nivel", 32, TextAlignmentOptions.Center, Color.white);
-        hud.levelChallengeText.fontStyle = FontStyles.Bold;
+        hud.levelChallengeText.fontStyle = FontStyles.Normal;   // sin negrita
         hud.levelChallengeText.enableAutoSizing = true;
-        hud.levelChallengeText.fontSizeMin = 20;
-        hud.levelChallengeText.fontSizeMax = 34;
-        hud.levelChallengeText.outlineWidth = 0.2f;
+        hud.levelChallengeText.fontSizeMin = 16;
+        hud.levelChallengeText.fontSizeMax = 26;
+        hud.levelChallengeText.outlineWidth = 0.12f;
         hud.levelChallengeText.outlineColor = new Color32(200, 80, 130, 255);
         Stretch(hud.levelChallengeText.rectTransform, 140, 140, 20, 44);
         RectTransform orderPill = Card(banner.rectTransform, "RetoPedido", new Vector2(0.5f, 0), new Vector2(0, -28), new Vector2(580, 60));
         hud.orderChallengeText = Label(orderPill, "Texto", "Reto del cliente", 26, TextAlignmentOptions.Center, MessagePink);
-        hud.orderChallengeText.fontStyle = FontStyles.Bold;
+        hud.orderChallengeText.fontStyle = FontStyles.Normal;
         hud.orderChallengeText.enableAutoSizing = true;
-        hud.orderChallengeText.fontSizeMin = 16;
-        hud.orderChallengeText.fontSizeMax = 26;
+        hud.orderChallengeText.fontSizeMin = 14;
+        hud.orderChallengeText.fontSizeMax = 22;
         Stretch(hud.orderChallengeText.rectTransform, 16, 16, 4, 4);
         hud.challengeBanner = banner.gameObject;
+        hud.challengeAutoHide = false;     // el reto del nivel siempre está en pantalla
+        hud.challengeShowSeconds = 5f;
 
         // ---------- Medidor de precisión (nivel 2) y cronómetro (nivel 8) ----------
         Sprite roundUI = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
         Sprite knob = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
         hud.timingMeter = TimingMeterUI.Create(safe, null, roundUI);
         hud.orderTimer = OrderTimerUI.Create(safe, null, roundUI, knob);
+        ((RectTransform)hud.orderTimer.transform).anchoredPosition = new Vector2(150f, -396f);
 
         // ---------- Ticket del pedido (arriba a la derecha, donde estaba) ----------
         hud.ticket = BuildTicket(safe);
@@ -866,21 +905,16 @@ public static class CakeBuilder
         hand.preserveAspect = true;
         hand.raycastTarget = false;
         Place(hand.rectTransform, new Vector2(0, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(55, 0), new Vector2(110, 100));
-        Sprite ui = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        Image stabBg = NewImage(stab, "Fondo", ui, Color.white);
-        stabBg.color = new Color(1f, 1f, 1f, 0.9f);
-        stabBg.raycastTarget = false;
-        Place(stabBg.rectTransform, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(120, 0), new Vector2(490, 52));
-        Image stabFill = NewImage(stabBg.rectTransform, "Relleno", ui, Color.white);
-        stabFill.type = Image.Type.Filled;
-        stabFill.fillMethod = Image.FillMethod.Horizontal;
-        stabFill.raycastTarget = false;
-        Stretch(stabFill.rectTransform, 6, 6, 6, 6);
+        Image stabBg = BarBack(stab);
+        Place(stabBg.rectTransform, new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(120, 0), new Vector2(490, 56));
+        Image stabFill = BarFill(stabBg.rectTransform);
         TextMeshProUGUI stabText = Label(stabBg.rectTransform, "Texto", "¡Toca para sujetar!", 26, TextAlignmentOptions.Center, Brown);
         stabText.fontStyle = FontStyles.Bold;
         Stretch(stabText.rectTransform);
         hud.stabilityRoot = stab.gameObject;
         hud.stabilityFill = stabFill;
+        hud.stableColor = Color.white;                       // la barra ya es rosada
+        hud.unstableColor = new Color(1f, 0.72f, 0.55f);     // se pone más naranja cuando la torre se va a caer
         hud.stabilityHand = hand.rectTransform;
         stab.gameObject.SetActive(false);
 
@@ -974,18 +1008,13 @@ public static class CakeBuilder
         // Paciencia
         RectTransform pat = NewUI("Paciencia", paper.rectTransform);
         Place(pat, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 32), new Vector2(290, 30));
-        Sprite ui = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        Image patBg = NewImage(pat, "Fondo", ui, Color.white);
-        patBg.color = new Color(0.9f, 0.8f, 0.85f);
-        patBg.raycastTarget = false;
+        Image patBg = BarBack(pat);
         Stretch(patBg.rectTransform);
-        Image patFill = NewImage(pat, "Relleno", ui, Color.white);
-        patFill.type = Image.Type.Filled;
-        patFill.fillMethod = Image.FillMethod.Horizontal;
-        patFill.raycastTarget = false;
-        Stretch(patFill.rectTransform, 4, 4, 4, 4);
+        Image patFill = BarFill(patBg.rectTransform);
         t.patienceRoot = pat.gameObject;
         t.patienceFill = patFill;
+        t.patienceOk = Color.white;
+        t.patienceLow = new Color(1f, 0.72f, 0.55f);
         return t;
     }
 
@@ -1053,9 +1082,15 @@ public static class CakeBuilder
     private static void BuildPausePanel(RectTransform safe, GameHud hud)
     {
         RectTransform pause = Overlay(safe, "PausePanel");
-        RectTransform pCard = Card(pause, "Tarjeta", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(720, 720));
-        Vertical(pCard.gameObject, 28, new RectOffset(70, 70, 55, 55));
-        Height(Label(pCard, "Titulo", "Pausa", 80, TextAlignmentOptions.Center, Brown), 120);
+        RectTransform pCard = Card(pause, "Tarjeta", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(680, 660));
+        Peek(pCard, "PersonajeAsomado", "UI/asomado_gatito_normal.png", new Vector2(0.5f, 1f), new Vector2(0, -34), 190);
+        RectTransform pList = NewUI("Contenido", pCard);
+        Stretch(pList);
+        Vertical(pList.gameObject, 24, new RectOffset(70, 70, 60, 50));
+        pCard = pList;
+        TextMeshProUGUI pTitle = Label(pCard, "Titulo", "Pausa", 76, TextAlignmentOptions.Center, MessagePink);
+        pTitle.fontStyle = FontStyles.Bold;
+        Height(pTitle, 110);
         hud.resumeButton = NewButton(pCard, "ResumeButton", "Continuar", 46, true); Height(hud.resumeButton, 130);
         hud.pauseRetryButton = NewButton(pCard, "RetryButton", "Reintentar", 42); Height(hud.pauseRetryButton, 120);
         hud.pauseMenuButton = NewButton(pCard, "MenuButton", "Menú", 42); Height(hud.pauseMenuButton, 120);
@@ -1075,7 +1110,7 @@ public static class CakeBuilder
         Place(rays.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(1700, 1700));
         r.rays = rays.rectTransform;
 
-        RectTransform card = Card(root, "Tarjeta", new Vector2(0.5f, 0.5f), new Vector2(0, -30), new Vector2(1280, 820));
+        RectTransform card = Card(root, "Tarjeta", new Vector2(0.5f, 0.5f), new Vector2(0, -45), new Vector2(1280, 800));
         r.card = card;
 
         // Listón con el título
@@ -1100,6 +1135,7 @@ public static class CakeBuilder
         RectTransform win = NewUI("Victoria", card);
         Stretch(win);
         r.winContent = win.gameObject;
+        Peek(win, "PersonajeAsomado", "UI/asomado_conejita_feliz.png", new Vector2(0.9f, 1f), new Vector2(0, -30), 180);
 
         RectTransform starRow = NewUI("Estrellas", win);
         Place(starRow, new Vector2(0.3f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -170), new Vector2(560, 190));
@@ -1147,7 +1183,9 @@ public static class CakeBuilder
         // Estadísticas (a la derecha)
         RectTransform statsBox = NewUI("Estadisticas", win);
         Image statsBg = statsBox.gameObject.AddComponent<Image>();
-        statsBg.color = new Color(1f, 0.9f, 0.94f, 0.9f);
+        statsBg.color = new Color(1f, 0.92f, 0.95f, 0.95f);
+        statsBg.sprite = Spr("UI/input.png");
+        statsBg.type = Image.Type.Sliced;
         statsBg.raycastTarget = false;
         Place(statsBox, new Vector2(0.75f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-10, 10), new Vector2(520, 430));
         VerticalLayoutGroup sv = statsBox.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -1188,6 +1226,7 @@ public static class CakeBuilder
         RectTransform lose = NewUI("Derrota", card);
         Stretch(lose);
         r.loseContent = lose.gameObject;
+        Peek(lose, "PersonajeAsomado", "UI/asomado_panda_enojado.png", new Vector2(0.9f, 1f), new Vector2(0, -30), 180);
 
         Image sad = NewImage(lose, "ClienteEnojado", Spr("Clientes/conejita_enojado.png"), Color.white);
         sad.preserveAspect = true;
@@ -1204,18 +1243,10 @@ public static class CakeBuilder
 
         RectTransform prog = NewUI("Progreso", lose);
         Place(prog, new Vector2(0.68f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(620, 110));
-        Sprite ui = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-        Image progBg = NewImage(prog, "Fondo", ui, Color.white);
-        progBg.color = new Color(0.95f, 0.85f, 0.9f);
-        progBg.raycastTarget = false;
-        Place(progBg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(620, 50));
-        Image progFill = NewImage(progBg.rectTransform, "Relleno", ui, Pink);
-        progFill.color = Pink;
-        progFill.type = Image.Type.Filled;
-        progFill.fillMethod = Image.FillMethod.Horizontal;
+        Image progBg = BarBack(prog);
+        Place(progBg.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(620, 56));
+        Image progFill = BarFill(progBg.rectTransform);
         progFill.fillAmount = 0.3f;
-        progFill.raycastTarget = false;
-        Stretch(progFill.rectTransform, 5, 5, 5, 5);
         r.loseProgressFill = progFill;
         r.loseProgressText = Label(prog, "Texto", "Pedidos: 1 / 3", 32, TextAlignmentOptions.Center, Brown);
         r.loseProgressText.fontStyle = FontStyles.Bold;
@@ -1245,6 +1276,7 @@ public static class CakeBuilder
         r.confettiSprites = new[] { Spr("Efectos/confeti.png"), Spr("Efectos/brillo.png"), Spr("Efectos/corazon_mini.png"), Spr("UI/estrella.png") }
             .Where(s => s != null).ToArray();
 
+        ribbon.transform.SetAsLastSibling();   // el listón queda por encima de los personajes asomados
         lose.gameObject.SetActive(false);
         return r;
     }
@@ -1263,28 +1295,34 @@ public static class CakeBuilder
         new GameObject("Musica").AddComponent<SceneMusic>();
 
         RectTransform safe = MakeCanvas("Canvas", Spr("UI/fondo_menu.png"), ThemeKey.FondoLogin);
+        FallingStrawberries(safe.parent, 22);
 
+        // Logo grande que flota + personajes saludando
         Image logo = Themed(NewImage(safe, "Logo", Spr("UI/logo.png"), Color.white), ThemeKey.Logo);
         logo.preserveAspect = true;
-        Place(logo.rectTransform, new Vector2(0.27f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 200), new Vector2(860, 280));
+        logo.raycastTarget = false;
+        Place(logo.rectTransform, new Vector2(0.3f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 150), new Vector2(900, 520));
+        Float(logo.gameObject, 14f, 1.4f, 0.025f, 1.5f);
+        Character(safe, "Gatito", "Clientes/gatito_feliz.png", new Vector2(0.17f, 0f), new Vector2(0, 30), 330, 0.2f);
+        Character(safe, "Perrito", "Clientes/perrito_feliz.png", new Vector2(0.43f, 0f), new Vector2(0, 30), 330, 1.1f);
 
-        Image cake = Themed(NewImage(safe, "Pastel", Spr("UI/avatar.png"), Color.white), ThemeKey.Avatar);
-        cake.preserveAspect = true;
-        Place(cake.rectTransform, new Vector2(0.27f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, -170), new Vector2(360, 360));
-
-        RectTransform card = Card(safe, "PanelLogin", new Vector2(0.72f, 0.5f), Vector2.zero, new Vector2(860, 980));
-        Vertical(card.gameObject, 20, new RectOffset(60, 60, 45, 45));
-        TextMeshProUGUI title = Label(card, "Titulo", "¡Bienvenida a la pastelería!", 48, TextAlignmentOptions.Center, Brown);
+        // Tarjeta del login con la conejita asomada
+        RectTransform card = Card(safe, "PanelLogin", new Vector2(0.73f, 0.5f), new Vector2(0, -50), new Vector2(780, 880));
+        Peek(card, "PersonajeAsomado", "UI/asomado_conejita_feliz.png", new Vector2(0.5f, 1f), new Vector2(0, -34), 175);
+        RectTransform form = NewUI("Formulario", card);
+        Stretch(form);
+        Vertical(form.gameObject, 18, new RectOffset(60, 60, 60, 40));
+        TextMeshProUGUI title = Label(form, "Titulo", "¡Bienvenida a Sugaru!", 50, TextAlignmentOptions.Center, MessagePink);
         title.fontStyle = FontStyles.Bold;
-        Height(title, 90);
-        TMP_InputField user = NewInputField(card, "UsernameInput", "Nombre (solo para registrarse)", TMP_InputField.ContentType.Standard);
-        TMP_InputField email = NewInputField(card, "EmailInput", "Correo electrónico", TMP_InputField.ContentType.EmailAddress);
-        TMP_InputField pass = NewInputField(card, "PasswordInput", "Contraseña (mínimo 6)", TMP_InputField.ContentType.Password);
-        RectTransform row = ButtonRow(card, 130);
-        Button register = NewButton(row, "RegisterButton", "Registrarse", 42);
-        Button login = NewButton(row, "LoginButton", "Entrar", 42, true);
-        TextMeshProUGUI message = Label(card, "MessageText", "", 32, TextAlignmentOptions.Center, Brown);
-        Height(message, 110);
+        Height(title, 86);
+        TMP_InputField user = NewInputField(form, "UsernameInput", "Nombre (solo para registrarse)", TMP_InputField.ContentType.Standard);
+        TMP_InputField email = NewInputField(form, "EmailInput", "Correo electrónico", TMP_InputField.ContentType.EmailAddress);
+        TMP_InputField pass = NewInputField(form, "PasswordInput", "Contraseña (mínimo 6)", TMP_InputField.ContentType.Password);
+        RectTransform row = ButtonRow(form, 130);
+        Button register = NewButton(row, "RegisterButton", "Registrarse", 40);
+        Button login = NewButton(row, "LoginButton", "Entrar", 44, true);
+        TextMeshProUGUI message = Label(form, "MessageText", "", 30, TextAlignmentOptions.Center, Brown);
+        Height(message, 100);
 
         LoginUI ui = new GameObject("LoginUI").AddComponent<LoginUI>();
         ui.usernameInput = user;
@@ -1318,36 +1356,44 @@ public static class CakeBuilder
         Instantiate(PF + "AudioManager.prefab");
         new GameObject("Musica").AddComponent<SceneMusic>();
         RectTransform safe = MakeCanvas("Canvas", Spr("UI/fondo_menu.png"), ThemeKey.FondoMenu);
+        FallingStrawberries(safe.parent, 14);
 
         // ---------------- INICIO ----------------
         RectTransform home = NewUI("HomePanel", safe);
         Stretch(home);
         Image logo = Themed(NewImage(home, "Logo", Spr("UI/logo.png"), Color.white), ThemeKey.Logo);
         logo.preserveAspect = true;
-        Place(logo.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -20), new Vector2(760, 230));
+        logo.raycastTarget = false;
+        Place(logo.rectTransform, new Vector2(0.3f, 1f), new Vector2(0.5f, 1f), new Vector2(0, -12), new Vector2(760, 400));
+        Float(logo.gameObject, 10f, 1.4f, 0.02f, 1.2f);
 
-        RectTransform info = Card(home, "InfoJugador", new Vector2(0.3f, 0.42f), Vector2.zero, new Vector2(820, 640));
-        Vertical(info.gameObject, 16, new RectOffset(50, 50, 40, 40));
+        RectTransform info = Card(home, "InfoJugador", new Vector2(0.3f, 0.3f), Vector2.zero, new Vector2(760, 500));
+        Vertical(info.gameObject, 10, new RectOffset(50, 50, 30, 30));
         Image avatar = Themed(NewImage(info, "Avatar", Spr("UI/avatar.png"), Color.white), ThemeKey.Avatar);
         avatar.preserveAspect = true;
-        Height(avatar, 190);
-        TextMeshProUGUI username = Label(info, "UsernameText", "Jugador", 62, TextAlignmentOptions.Center, Brown);
+        Height(avatar, 150);
+        TextMeshProUGUI username = Label(info, "UsernameText", "Jugador", 56, TextAlignmentOptions.Center, MessagePink);
         username.fontStyle = FontStyles.Bold;
-        Height(username, 84);
-        TextMeshProUGUI total = Label(info, "TotalScoreText", "Puntaje total: 0", 44, TextAlignmentOptions.Center, Brown);
-        Height(total, 62);
-        TextMeshProUGUI last = Label(info, "LastScoreText", "Última partida: 0", 38, TextAlignmentOptions.Center, Brown);
-        Height(last, 54);
-        TextMeshProUGUI maxLevel = Label(info, "MaxLevelText", "Nivel máximo: 1 / 10", 38, TextAlignmentOptions.Center, Brown);
-        Height(maxLevel, 54);
+        Height(username, 72);
+        TextMeshProUGUI total = Label(info, "TotalScoreText", "Puntaje total: 0", 40, TextAlignmentOptions.Center, Brown);
+        Height(total, 54);
+        TextMeshProUGUI last = Label(info, "LastScoreText", "Última partida: 0", 34, TextAlignmentOptions.Center, Brown);
+        Height(last, 46);
+        TextMeshProUGUI maxLevel = Label(info, "MaxLevelText", "Nivel máximo: 1 / 10", 34, TextAlignmentOptions.Center, Brown);
+        Height(maxLevel, 46);
 
         RectTransform buttons = NewUI("Botones", home);
-        Place(buttons, new Vector2(0.72f, 0.42f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(600, 690));
-        Vertical(buttons.gameObject, 26, new RectOffset(0, 0, 0, 0));
-        Button play = NewButton(buttons, "PlayButton", "JUGAR", 72, true); Height(play, 190);
-        Button ranking = NewButton(buttons, "RankingButton", "Ranking", 50); Height(ranking, 140);
-        Button settings = NewButton(buttons, "SettingsButton", "Ajustes", 50); Height(settings, 140);
-        Button logout = NewButton(buttons, "LogoutButton", "Cerrar sesión", 42); Height(logout, 120);
+        Place(buttons, new Vector2(0.73f, 0.45f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(600, 640));
+        Image dogPeek = Peek(buttons, "PersonajeAsomado", "UI/asomado_perrito_feliz.png", new Vector2(0.5f, 1f), new Vector2(0, -24), 170);
+        RectTransform btnList = NewUI("Lista", buttons);
+        Stretch(btnList);
+        Vertical(btnList.gameObject, 22, new RectOffset(0, 0, 0, 0));
+        Button play = NewButton(btnList, "PlayButton", "Jugar", 72, true); Height(play, 180);
+        Button ranking = NewButton(btnList, "RankingButton", "Ranking", 46); Height(ranking, 128);
+        Button settings = NewButton(btnList, "SettingsButton", "Configuraciones", 44); Height(settings, 128);
+        Button logout = NewButton(btnList, "LogoutButton", "Salir", 42); Height(logout, 112);
+        dogPeek.transform.SetAsLastSibling();   // las patitas quedan encima del botón Jugar
+        Character(home, "Panda", "Clientes/panda_feliz.png", new Vector2(0.97f, 0f), new Vector2(-40, 10), 250, 0.6f);
 
         // ---------------- MAPA DE NIVELES ----------------
         RectTransform mapPanel = NewUI("MapaPanel", safe);
@@ -1412,7 +1458,7 @@ public static class CakeBuilder
         Image mapTitle = Themed(NewImage(mapPanel, "Titulo", Spr("UI/cinta.png"), Pink), ThemeKey.Cinta);
         mapTitle.raycastTarget = false;
         Place(mapTitle.rectTransform, new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -6), new Vector2(760, 170));
-        TextMeshProUGUI mapTitleText = Label(mapTitle.rectTransform, "Texto", "Camino de pasteles", 48, TextAlignmentOptions.Center, Color.white);
+        TextMeshProUGUI mapTitleText = Label(mapTitle.rectTransform, "Texto", "Camino de Pasteles", 48, TextAlignmentOptions.Center, Color.white);
         mapTitleText.fontStyle = FontStyles.Bold;
         mapTitleText.outlineWidth = 0.2f;
         mapTitleText.outlineColor = new Color32(200, 80, 130, 255);
@@ -1528,8 +1574,9 @@ public static class CakeBuilder
         root.gameObject.SetActive(true);
         LevelInfoPopup p = root.gameObject.AddComponent<LevelInfoPopup>();
 
-        RectTransform card = Card(root, "Tarjeta", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1000, 760));
+        RectTransform card = Card(root, "Tarjeta", new Vector2(0.5f, 0.5f), new Vector2(0, -30), new Vector2(1000, 760));
         p.card = card;
+        Peek(card, "PersonajeAsomado", "UI/asomado_perrito_feliz.png", new Vector2(0.1f, 1f), new Vector2(0, -30), 170);
 
         Image ribbon = Themed(NewImage(card, "Liston", Spr("UI/cinta.png"), Pink), ThemeKey.Cinta);
         ribbon.raycastTarget = false;
@@ -1580,6 +1627,7 @@ public static class CakeBuilder
         p.playButton = NewButton(card, "PlayButton", "¡Jugar!", 56, true);
         Place((RectTransform)p.playButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(460, 140));
 
+        ribbon.transform.SetAsLastSibling();
         p.closeButton = IconButton(card, "CloseButton", ThemeKey.BotonCerrar, "X");
         Place((RectTransform)p.closeButton.transform, new Vector2(1f, 1f), new Vector2(0.5f, 0.5f), new Vector2(-20, -20), new Vector2(100, 100));
         return p;
@@ -1658,6 +1706,104 @@ public static class CakeBuilder
     //  AYUDANTES: UI
     // =====================================================================
 
+    // ---------------------------------------------------------------- barras (estilo Sugaru)
+    private static Image BarBack(Transform parent)
+    {
+        Image bg = NewImage(parent, "Fondo", Spr("UI/barra_fondo.png"), Cream);
+        bg.raycastTarget = false;
+        return bg;
+    }
+
+    /// <summary>Relleno rosado con rayitas que se llena de izquierda a derecha.</summary>
+    private static Image BarFill(RectTransform back)
+    {
+        Image fill = NewImage(back, "Relleno", Spr("UI/barra_relleno.png"), Pink);
+        fill.type = Image.Type.Filled;
+        fill.fillMethod = Image.FillMethod.Horizontal;
+        fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+        fill.raycastTarget = false;
+        Stretch(fill.rectTransform, 3, 3, 3, 3);
+        return fill;
+    }
+
+    // ---------------------------------------------------------------- estilo Sugaru
+
+    /// <summary>Fresas (y estrellitas/corazones) que caen en el fondo del login y del menú.</summary>
+    private static void FallingStrawberries(Transform canvasRoot, int count)
+    {
+        RectTransform layer = NewUI("FresasCayendo", canvasRoot);
+        Stretch(layer);
+        layer.SetSiblingIndex(1);   // encima del fondo, detrás de todo lo demás
+        FresasFlotantes f = layer.gameObject.AddComponent<FresasFlotantes>();
+        f.imagenes = new[] { Spr("UI/fresa.png"), Spr("UI/fresa_cara.png"), Spr("UI/fresa.png"), Spr("UI/estrella.png"), Spr("UI/corazon_lleno.png") }
+            .Where(x => x != null).ToArray();
+        f.cantidad = count;
+    }
+
+    /// <summary>Personaje que se asoma por encima de una ventana (cabeza + patitas sobre el borde).</summary>
+    private static Image Peek(RectTransform parent, string name, string sprite, Vector2 anchor, Vector2 pos, float height)
+    {
+        Sprite sp = Spr(sprite);
+        Image img = NewImage(parent, name, sp, Color.white);
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        float w = sp != null ? height * sp.rect.width / sp.rect.height : height;
+        img.rectTransform.anchorMin = img.rectTransform.anchorMax = anchor;
+        img.rectTransform.pivot = new Vector2(0.5f, 0f);
+        img.rectTransform.anchoredPosition = pos;
+        img.rectTransform.sizeDelta = new Vector2(w, height);
+        img.transform.SetAsFirstSibling();   // detrás de lo demás de la ventana: las patitas quedan sobre el borde
+        Float(img.gameObject, 5f, 1.8f, 0.02f, 1.5f);
+        return img;
+    }
+
+    /// <summary>Personaje de cuerpo entero que se balancea (decoración del login y el menú).</summary>
+    private static Image Character(Transform parent, string name, string sprite, Vector2 anchor, Vector2 pos, float height, float phase)
+    {
+        Sprite sp = Spr(sprite);
+        Image img = NewImage(parent, name, sp, Color.white);
+        img.preserveAspect = true;
+        img.raycastTarget = false;
+        float w = sp != null ? height * sp.rect.width / sp.rect.height : height;
+        img.rectTransform.anchorMin = img.rectTransform.anchorMax = anchor;
+        img.rectTransform.pivot = new Vector2(0.5f, 0f);
+        img.rectTransform.anchoredPosition = pos;
+        img.rectTransform.sizeDelta = new Vector2(w, height);
+        Flotar fl = Float(img.gameObject, 8f, 2.2f + phase * 0.3f, 0.03f, 3f);
+        fl.rebotarAlAparecer = true;
+        return img;
+    }
+
+    private static Flotar Float(GameObject go, float altura, float velocidad, float respiro, float balanceo)
+    {
+        Flotar f = go.AddComponent<Flotar>();
+        f.altura = altura;
+        f.velocidad = velocidad;
+        f.respiro = respiro;
+        f.balanceo = balanceo;
+        return f;
+    }
+
+    /// <summary>"Pastilla" del HUD: fondo crema redondeado con un ícono a la izquierda.</summary>
+    private static RectTransform Pill(Transform parent, string name, Vector2 pos, Vector2 size, string icon, ThemeKey iconKey)
+    {
+        Image bg = Themed(NewImage(parent, name, Spr("UI/boton.png"), Cream), ThemeKey.Boton);
+        bg.raycastTarget = false;
+        RectTransform rt = bg.rectTransform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0, 1);
+        rt.pivot = new Vector2(0, 1);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = size;
+        if (icon != null)
+        {
+            Image ic = Themed(NewImage(rt, "Icono", Spr(icon), Pink), iconKey);
+            ic.preserveAspect = true;
+            ic.raycastTarget = false;
+            Place(ic.rectTransform, new Vector2(0, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(50, 4), new Vector2(size.y * 0.95f, size.y * 0.95f));
+        }
+        return rt;
+    }
+
     /// <summary>Hace que esta imagen tome su sprite del TemaVisual (casilla "key").</summary>
     private static Image Themed(Image img, ThemeKey key)
     {
@@ -1729,7 +1875,12 @@ public static class CakeBuilder
         t.text = label;
         t.fontSize = fontSize;
         t.fontStyle = FontStyles.Bold;
-        t.color = Color.white;
+        t.color = green ? Color.white : ButtonText;   // principal: blanco · secundario (crema): rosado oscuro
+        if (green)
+        {
+            t.outlineWidth = 0.12f;
+            t.outlineColor = new Color32(205, 70, 112, 255);
+        }
         t.enableAutoSizing = true;      // si el texto no cabe, se achica solo
         t.fontSizeMin = 18;
         t.fontSizeMax = fontSize;
@@ -1787,9 +1938,16 @@ public static class CakeBuilder
         s.maxValue = 1f;
         s.value = 0.7f;
         Transform handle = go.transform.Find("Handle Slide Area/Handle");
-        if (handle != null) ((RectTransform)handle).sizeDelta = new Vector2(60, 0);
+        if (handle != null)
+        {
+            ((RectTransform)handle).sizeDelta = new Vector2(64, 0);
+            SetImage(handle.GetComponent<Image>(), Spr("UI/barra_perilla.png"), Pink);
+            handle.GetComponent<Image>().preserveAspect = true;
+        }
         Transform fill = go.transform.Find("Fill Area/Fill");
-        if (fill != null) fill.GetComponent<Image>().color = Pink;
+        if (fill != null) SetImage(fill.GetComponent<Image>(), Spr("UI/barra_relleno.png"), Pink);
+        Transform back = go.transform.Find("Background");
+        if (back != null) SetImage(back.GetComponent<Image>(), Spr("UI/barra_fondo.png"), Cream);
         return s;
     }
 

@@ -281,6 +281,7 @@ public class StackGame : MonoBehaviour
         hud.ticket.Show(order, catalog.flavors, string.Format(hud.ticketTitleFormat, name), ChallengeText());
         hud.ticket.SetVisible(true);
         hud.ticket.Pop();
+        hud.ShowChallenge();   // el reto baja unos segundos y se esconde
         if (hud.orderTimer != null)
         {
             hud.orderTimer.Show(order.patience > 0f);

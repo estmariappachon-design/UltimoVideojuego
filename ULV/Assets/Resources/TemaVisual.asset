@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: TemaVisual
   m_EditorClassIdentifier: Assembly-CSharp::UITheme
   logo: {fileID: 21300000, guid: fe0974933fff11e42a96bb78333f4c16, type: 3}
-  fondoLogin: {fileID: 21300000, guid: 17813ee9a2422d347ad656cd78bb1196, type: 3}
-  fondoMenu: {fileID: 21300000, guid: 17813ee9a2422d347ad656cd78bb1196, type: 3}
+  fondoLogin: {fileID: 0}
+  fondoMenu: {fileID: 21300000, guid: 9b53b769c905f4843973347eb3486732, type: 3}
   fondoMapa: {fileID: 21300000, guid: 857293cfbf6297348882b44cdef804cc, type: 3}
   boton: {fileID: 21300000, guid: 6ec57031a7d88bc4c9a02d5456b18ab5, type: 3}
   botonVerde: {fileID: 21300000, guid: 9899d4fcf7a632a4b9c168093920e56b, type: 3}
@@ -42,8 +42,8 @@ MonoBehaviour:
   iconoPerfecto: {fileID: 21300000, guid: d355ff04c4c4a1146ad519bce91f33b0, type: 3}
   iconoMosca: {fileID: 21300000, guid: 96800cfc969597c4c8ae074611c9384b, type: 3}
   iconoQuemado: {fileID: 21300000, guid: f55917bb49f7da44fa637f9161d50939, type: 3}
-  iconoCorazon: {fileID: 21300000, guid: 132a2f03e523b1446ad80552ebfcae5a, type: 3}
-  avatar: {fileID: 21300000, guid: 4468154233dfa0b4388c8050046c1704, type: 3}
+  iconoCorazon: {fileID: 0}
+  avatar: {fileID: 21300000, guid: 5be3db567ed4ba947a3948a84b68a741, type: 3}
   nodoNivel: {fileID: 21300000, guid: ad36c41bc2a48624799f6414ad8d659d, type: 3}
   nodoBloqueado: {fileID: 21300000, guid: fb67d87ae323b6241890d26c7065b65e, type: 3}
   nodoCompletado: {fileID: 21300000, guid: 01cc52e025b83b04388220a48349d968, type: 3}
