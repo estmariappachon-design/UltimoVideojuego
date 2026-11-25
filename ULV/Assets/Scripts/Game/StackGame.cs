@@ -482,7 +482,7 @@ public class StackGame : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Space)) dropRequested = true;
+        if (InputCompat.SpacePressed()) dropRequested = true;   // funciona con el Input System nuevo y el viejo
         if (dropRequested)
         {
             dropRequested = false;
