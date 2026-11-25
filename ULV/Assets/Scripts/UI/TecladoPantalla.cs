@@ -83,11 +83,7 @@ public class TecladoPantalla : MonoBehaviour
             foreach (TMP_InputField f in campos)
             {
                 if (f == null) continue;
-                if (ocultarTecladoDelCelular)
-                {
-                    f.shouldHideSoftKeyboard = true;
-                    f.shouldHideMobileInput = true;
-                }
+                if (ocultarTecladoDelCelular) OcultarTecladoNativo(f);
                 if (f.image != null) coloresOriginales[f] = f.image.color;
                 TMP_InputField ff = f;
                 f.onSelect.AddListener(_ => Activar(ff));
@@ -95,6 +91,17 @@ public class TecladoPantalla : MonoBehaviour
             foreach (TMP_InputField f in campos) if (f != null && f.gameObject.activeInHierarchy) { Activar(f); break; }
         }
         ActualizarEtiquetas();
+    }
+
+    /// <summary>
+    /// Evita que se abra el teclado del celular. "shouldHideSoftKeyboard" no existe en todas las versiones
+    /// de TextMeshPro, por eso se busca por nombre (así nunca da error al compilar).
+    /// </summary>
+    private static void OcultarTecladoNativo(TMP_InputField f)
+    {
+        f.shouldHideMobileInput = true;
+        var prop = typeof(TMP_InputField).GetProperty("shouldHideSoftKeyboard");
+        if (prop != null && prop.CanWrite) prop.SetValue(f, true);
     }
 
     private void Activar(TMP_InputField f)

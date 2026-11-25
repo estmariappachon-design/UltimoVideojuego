@@ -1,0 +1,139 @@
+[23:33:06] Error (editor)
+EnvironmentDependencyValues requested are different than current active one (requested -> active):
+
+
+----
+[23:33:06] Error (editor)
+  graphicsApiMask: 2048 -> 264192
+
+
+----
+[23:33:06] Error (editor)
+EnvironmentDependencyValues requested are different than current active one (requested -> active):
+
+
+----
+[23:33:06] Error (editor)
+  graphicsApiMask: 2048 -> 264192
+
+
+----
+[23:33:33] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Input.get_mousePosition () (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.get_mousePosition () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:75)
+UnityEngine.EventSystems.StandaloneInputModule.UpdateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:176)
+UnityEngine.EventSystems.EventSystem.TickModules () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:461)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:481)
+
+----
+[23:33:35] Error (editor)
+EnvironmentDependencyValues requested are different than current active one (requested -> active):
+
+
+----
+[23:33:35] Error (editor)
+  graphicsApiMask: 2048 -> 264192
+
+
+----
+[23:33:35] Error (editor)
+EnvironmentDependencyValues requested are different than current active one (requested -> active):
+
+
+----
+[23:33:35] Error (editor)
+  graphicsApiMask: 2048 -> 264192
+
+
+----
+[23:33:42] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:43] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:43] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:43] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:43] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:44] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:44] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:44] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:44] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
+[23:33:44] Exception (jugando)
+InvalidOperationException: You are trying to read Input using the UnityEngine.Input class, but you have switched active Input handling to Input System package in Player Settings.
+UnityEngine.Internal.InputUnsafeUtility.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.Input.GetButtonDown (System.String buttonName) (at <7961dea4e37d439abcbb2c89f602a607>:0)
+UnityEngine.EventSystems.BaseInput.GetButtonDown (System.String buttonName) (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/BaseInput.cs:134)
+UnityEngine.EventSystems.StandaloneInputModule.ShouldActivateModule () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/InputModules/StandaloneInputModule.cs:253)
+UnityEngine.EventSystems.EventSystem.Update () (at ./Library/PackageCache/com.unity.ugui@3dd2fbd8c1f1/Runtime/UGUI/EventSystem/EventSystem.cs:488)
+
+----
